@@ -51,6 +51,14 @@ export const StudentDashboard = () => {
 
   const fetchDIDDocument = useCallback(async () => {
     try {
+      // First check localStorage
+      const storageKey = `did_${walletAddress}`
+      const cached = localStorage.getItem(storageKey)
+      if (cached) {
+        setDidDocument(JSON.parse(cached))
+        return
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/did/${walletAddress}`
       )
@@ -114,11 +122,16 @@ export const StudentDashboard = () => {
       }
 
       // Set DID document directly from create response
-      setDidDocument({
+      const didData = {
         did: createData.data.did,
         ipfsHash: createData.data.ipfsHash,
         didDocument: createData.data.didDocument,
-      })
+      }
+      setDidDocument(didData)
+      
+      // Persist to localStorage
+      const storageKey = `did_${walletAddress}`
+      localStorage.setItem(storageKey, JSON.stringify(didData))
 
       // For now, skip on-chain registration (would require wallet signing)
       // In production, user would sign the transaction and send back the signedTxn
