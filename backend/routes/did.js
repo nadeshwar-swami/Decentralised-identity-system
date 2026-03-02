@@ -124,9 +124,9 @@ router.post('/register', async (req, res) => {
     }
 
     // Step 2: Initialize Algod client
-    const algodToken = ''
-    const algodServer = process.env.VITE_ALGOD_URL || 'https://testnet-api.algonode.cloud'
-    const algodPort = 443
+    const algodToken = process.env.ALGORAND_ALGOD_TOKEN || ''
+    const algodServer = process.env.ALGORAND_ALGOD_SERVER || 'https://testnet-api.algonode.cloud'
+    const algodPort = process.env.ALGORAND_ALGOD_PORT || '443'
     const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort)
 
     // Step 3: Submit transaction to blockchain
