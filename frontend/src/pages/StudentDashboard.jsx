@@ -4,7 +4,7 @@ import { useWalletContext } from '../context/WalletContext'
 import { CredentialCard } from '../components/CredentialCard'
 import { SelectiveDisclosure } from '../components/SelectiveDisclosure'
 import { StudentProfileForm } from '../components/StudentProfileForm'
-import { Award, Loader2, AlertCircle, FileText, ExternalLink, Home } from 'lucide-react'
+import { Award, Loader2, AlertCircle, FileText, ExternalLink, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import algosdk from 'algosdk'
 
@@ -540,12 +540,12 @@ export const StudentDashboard = () => {
       {/* Floating Back to Home Button */}
       <button
         onClick={() => navigate('/')}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center gap-2 group"
+        className="fixed top-6 left-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center gap-2"
         title="Back to Home"
       >
-        <Home className="w-5 h-5" />
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
-          Home
+        <ArrowLeft className="w-5 h-5" />
+        <span className="font-medium">
+          Back to Home
         </span>
       </button>
     </div>
