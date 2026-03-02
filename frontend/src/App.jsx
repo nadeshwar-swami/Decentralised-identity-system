@@ -26,7 +26,6 @@ const AppContent = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar
-        onConnect={connectWallet}
         onDisconnect={handleDisconnect}
       />
 

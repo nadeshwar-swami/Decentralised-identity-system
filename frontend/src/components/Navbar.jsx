@@ -10,7 +10,7 @@ import { Home, User, Shield, Briefcase } from 'lucide-react'
  * Navbar component - main navigation with wallet connect
  * Shows role switcher, wallet status, and connection controls
  */
-export const Navbar = ({ onConnect, onDisconnect }) => {
+export const Navbar = ({ onDisconnect }) => {
   const { walletAddress, isConnected } = useWalletContext()
   const { currentRole } = useRoleContext()
   const location = useLocation()
@@ -66,7 +66,6 @@ export const Navbar = ({ onConnect, onDisconnect }) => {
             <WalletConnect
               walletAddress={walletAddress}
               isConnected={isConnected}
-              onConnect={onConnect}
               onDisconnect={onDisconnect}
             />
           </div>

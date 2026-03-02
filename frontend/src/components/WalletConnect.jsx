@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 /**
  * WalletConnect component - handles wallet connection UI with Pera Wallet
  */
-export const WalletConnect = ({ onConnect, onDisconnect }) => {
+export const WalletConnect = ({ onDisconnect }) => {
   const { walletAddress, isConnected, isConnecting, connectWallet, disconnectWallet } = useWalletContext()
 
   const truncateAddress = (addr) => {
@@ -14,9 +14,12 @@ export const WalletConnect = ({ onConnect, onDisconnect }) => {
   }
 
   const handleConnect = async () => {
+    // Prevent double-click/multiple attempts
+    if (isConnecting || isConnected) return
+    
     try {
       await connectWallet()
-      onConnect?.()
+      // No callback needed - wallet is already connected
     } catch (err) {
       console.error('Failed to connect wallet:', err)
     }

@@ -18,9 +18,12 @@ export const WalletProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false)
   const [walletAddress, setWalletAddress] = useState('')
   const [isConnecting, setIsConnecting] = useState(false)
+  const [hasReconnected, setHasReconnected] = useState(false)
 
-  // Reconnect to existing session on mount
+  // Reconnect to existing session on mount (only once)
   useEffect(() => {
+    if (hasReconnected) return // Skip if already attempted
+    
     const reconnect = async () => {
       try {
         const accounts = await peraWallet.reconnectSession()
@@ -34,11 +37,13 @@ export const WalletProvider = ({ children }) => {
         }
       } catch (err) {
         console.log('No previous session to reconnect:', err.message)
+      } finally {
+        setHasReconnected(true) // Mark reconnection as attempted
       }
     }
 
     reconnect()
-  }, [])
+  }, [hasReconnected])
 
   // Setup disconnect event listener
   useEffect(() => {
@@ -73,6 +78,9 @@ export const WalletProvider = ({ children }) => {
    * Connect wallet - opens Pera Wallet connection modal
    */
   const connectWallet = async () => {
+    // Prevent multiple connection attempts
+    if (isConnecting || isConnected) return
+    
     setIsConnecting(true)
     try {
       const accounts = await peraWallet.connect()
