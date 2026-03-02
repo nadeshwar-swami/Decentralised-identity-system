@@ -113,13 +113,17 @@ export const StudentDashboard = () => {
         throw new Error(createData.message || 'Failed to create DID')
       }
 
-      const studentDID = createData.data.did
+      // Set DID document directly from create response
+      setDidDocument({
+        did: createData.data.did,
+        ipfsHash: createData.data.ipfsHash,
+        didDocument: createData.data.didDocument,
+      })
 
       // For now, skip on-chain registration (would require wallet signing)
       // In production, user would sign the transaction and send back the signedTxn
       
       toast.success('DID created successfully!')
-      fetchDIDDocument()
     } catch (err) {
       console.error('Error registering identity:', err)
       toast.error(err.message || 'Failed to register identity')
