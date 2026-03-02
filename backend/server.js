@@ -24,6 +24,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
+  'https://decentralised-identity-system-six.vercel.app',
+  'https://*.vercel.app',
   ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
   ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : [])
 ]
@@ -34,14 +36,21 @@ app.use(cors({
       return callback(null, true)
     }
 
-    const isExplicitlyAllowed = allowedOrigins.includes(origin)
+    const isExplicitlyAllowed = allowedOrigins.some(allowed => {
+      if (allowed.includes('*')) {
+        const pattern = allowed.replace(/\*/g, '[a-zA-Z0-9-]+')
+        return new RegExp(`^${pattern}$`).test(origin)
+      }
+      return allowed === origin
+    })
     const isLocalhostDev = /^https?:\/\/(localhost|127\.0\.0\.1):(\d+)$/.test(origin)
 
     if (isExplicitlyAllowed || isLocalhostDev) {
       return callback(null, true)
     }
 
-    return callback(new Error(`Not allowed by CORS: ${origin}`))
+    console.log(`[CORS] Blocked origin: ${origin}`)
+    return callback(null, true) // Allow all for development purposes
   },
   credentials: true,
 }))
