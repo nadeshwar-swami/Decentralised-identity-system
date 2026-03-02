@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { WalletProvider, useWalletContext } from './context/WalletContext'
 import { RoleProvider, useRoleContext } from './context/RoleContext'
@@ -19,6 +19,10 @@ import './index.css'
 const AppContent = () => {
   const { walletAddress, isConnected, connectWallet, disconnectWallet } = useWalletContext()
   const { currentRole } = useRoleContext()
+  const location = useLocation()
+
+  // Hide navbar on landing and admin-login pages
+  const showNavbar = location.pathname !== '/' && location.pathname !== '/admin-login'
 
   const handleDisconnect = () => {
     disconnectWallet()
@@ -26,9 +30,11 @@ const AppContent = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar
-        onDisconnect={handleDisconnect}
-      />
+      {showNavbar && (
+        <Navbar
+          onDisconnect={handleDisconnect}
+        />
+      )}
 
       <main className="flex-1 bg-gray-50">
         <Routes>
