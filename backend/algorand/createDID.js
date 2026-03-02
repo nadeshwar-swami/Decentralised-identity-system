@@ -31,7 +31,7 @@ export const createDID = async (walletAddress, ipfsHash) => {
     const txn = algosdk.makeApplicationCallTxnFromObject({
       from: walletAddress,
       appIndex: appId,
-      onComplete: 0, // NoOp = 0
+      appOnComplete: 0, // NoOp = 0
       appArgs: [
         new Uint8Array(Buffer.from('register_did')),
         new Uint8Array(Buffer.from(ipfsHash, 'utf-8')),
