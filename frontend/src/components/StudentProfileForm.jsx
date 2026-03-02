@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { User, Mail, Book, Phone, Calendar } from 'lucide-react'
 
-export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }) => {
+export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, isLocked = false }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     studentId: '',
@@ -96,10 +96,20 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
-        <p className="text-gray-600 text-sm">
-          This information will be used to issue your academic credentials and verify your identity.
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isLocked ? '✓ Your Profile' : 'Complete Your Profile'}
+        </h2>
+        {isLocked ? (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-700 text-sm font-medium">
+              🔒 Your profile is locked. Once you receive your first credential, your profile information cannot be edited to maintain credential integrity and prevent fraud.
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-600 text-sm">
+            This information will be used to issue your academic credentials and verify your identity.
+          </p>
+        )}
       </div>
 
       {/* Personal Information Section */}
@@ -121,7 +131,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               value={formData.fullName}
               onChange={handleChange}
               placeholder="e.g., John Doe"
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.fullName ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -139,7 +152,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               value={formData.studentId}
               onChange={handleChange}
               placeholder="e.g., STU-2024-001"
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.studentId ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -156,7 +172,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               name="dateOfBirth"
               value={formData.dateOfBirth}
               onChange={handleChange}
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -176,7 +195,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               value={formData.admissionNumber}
               onChange={handleChange}
               placeholder="e.g., ADM-2024-001"
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.admissionNumber ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -206,7 +228,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               value={formData.email}
               onChange={handleChange}
               placeholder="e.g., john.doe@university.edu"
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -224,7 +249,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               value={formData.mobileNumber}
               onChange={handleChange}
               placeholder="e.g., +1-555-0100"
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.mobileNumber ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -252,7 +280,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               name="department"
               value={formData.department}
               onChange={handleChange}
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.department ? 'border-red-500' : 'border-gray-300'
               }`}
             >
@@ -280,7 +311,10 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
               name="yearOfStudy"
               value={formData.yearOfStudy}
               onChange={handleChange}
+              disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              } ${
                 errors.yearOfStudy ? 'border-red-500' : 'border-gray-300'
               }`}
             >
@@ -306,20 +340,22 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null }
       )}
 
       {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full btn-primary flex items-center justify-center gap-2"
-      >
-        {loading ? (
-          <>
-            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-            Saving Profile...
-          </>
-        ) : (
-          'Save Profile & Continue'
-        )}
-      </button>
+      {!isLocked && (
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full btn-primary flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+              Saving Profile...
+            </>
+          ) : (
+            'Save Profile & Continue'
+          )}
+        </button>
+      )}
 
       {/* Privacy Note */}
       <p className="text-xs text-gray-500 text-center">

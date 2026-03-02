@@ -238,12 +238,14 @@ export const StudentDashboard = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       {/* Profile Modal */}
-      {profileModalOpen && !studentProfile && (
+      {profileModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
               <StudentProfileForm
                 walletAddress={walletAddress}
+                initialData={studentProfile || undefined}
+                isLocked={credentials.length > 0}
                 onSave={(profileData) => {
                   setStudentProfile(profileData)
                   setProfileModalOpen(false)
@@ -391,9 +393,14 @@ export const StudentDashboard = () => {
               </div>
               <button
                 onClick={() => setProfileModalOpen(true)}
-                className="btn-secondary text-sm"
+                disabled={credentials.length > 0}
+                className={`${
+                  credentials.length > 0
+                    ? 'btn-secondary text-sm opacity-50 cursor-not-allowed'
+                    : 'btn-secondary text-sm'
+                }`}
               >
-                Edit Profile
+                {credentials.length > 0 ? '🔒 Profile Locked' : 'Edit Profile'}
               </button>
             </div>
           )}
