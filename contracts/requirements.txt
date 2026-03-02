@@ -1,0 +1,2 @@
+algopy==0.7.2
+algosdk==2.7.0
