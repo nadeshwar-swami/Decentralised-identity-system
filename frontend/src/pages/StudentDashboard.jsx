@@ -5,6 +5,9 @@ import { SelectiveDisclosure } from '../components/SelectiveDisclosure'
 import { Award, Loader2, AlertCircle, FileText, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const lastInitialFetchByWallet = new Map()
+const INITIAL_FETCH_DEDUPE_WINDOW_MS = 1500
+
 /**
  * StudentDashboard - student's identity and credential management
  * Feature 6: Student Credentials UI
@@ -67,10 +70,20 @@ export const StudentDashboard = () => {
 
   // useEffect AFTER function definitions
   React.useEffect(() => {
-    if (isConnected && walletAddress) {
-      fetchCredentials()
-      fetchDIDDocument()
+    if (!isConnected || !walletAddress) {
+      return
     }
+
+    const now = Date.now()
+    const lastFetchAt = lastInitialFetchByWallet.get(walletAddress) || 0
+
+    if (now - lastFetchAt < INITIAL_FETCH_DEDUPE_WINDOW_MS) {
+      return
+    }
+
+    lastInitialFetchByWallet.set(walletAddress, now)
+    fetchCredentials()
+    fetchDIDDocument()
   }, [walletAddress, isConnected, fetchCredentials, fetchDIDDocument])
 
   const handleRegisterIdentity = async () => {
