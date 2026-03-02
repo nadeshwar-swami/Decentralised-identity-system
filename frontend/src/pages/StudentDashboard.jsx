@@ -4,6 +4,7 @@ import { CredentialCard } from '../components/CredentialCard'
 import { SelectiveDisclosure } from '../components/SelectiveDisclosure'
 import { Award, Loader2, AlertCircle, FileText, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
+import algosdk from 'algosdk'
 
 const lastInitialFetchByWallet = new Map()
 const INITIAL_FETCH_DEDUPE_WINDOW_MS = 1500
@@ -13,7 +14,7 @@ const INITIAL_FETCH_DEDUPE_WINDOW_MS = 1500
  * Feature 6: Student Credentials UI
  */
 export const StudentDashboard = () => {
-  const { walletAddress, isConnected } = useWalletContext()
+  const { walletAddress, isConnected, signTransaction } = useWalletContext()
 
   const [credentials, setCredentials] = useState([])
   const [didDocument, setDidDocument] = useState(null)
@@ -102,8 +103,9 @@ export const StudentDashboard = () => {
 
     try {
       setRegistering(true)
+      toast.loading('Creating DID document...', { id: 'did-registration' })
 
-      // Create DID
+      // Step 1: Create DID document and get unsigned transaction
       const createResponse = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/did/create`,
         {
@@ -121,25 +123,68 @@ export const StudentDashboard = () => {
         throw new Error(createData.message || 'Failed to create DID')
       }
 
-      // Set DID document directly from create response
+      // Step 2: Decode the unsigned transaction bytes
+      toast.loading('Preparing transaction for signing...', { id: 'did-registration' })
+      const txnBytes = Buffer.from(createData.data.transaction.txnBytes, 'base64')
+      const txn = algosdk.decodeUnsignedTransaction(txnBytes)
+
+      // Step 3: Sign transaction with Pera Wallet
+      toast.loading('Please sign the transaction in your wallet...', { id: 'did-registration' })
+      
+      const singleTxnGroup = [{ txn, signers: [walletAddress] }]
+      const signedTxn = await signTransaction([singleTxnGroup])
+
+      // Step 4: Submit signed transaction to blockchain
+      toast.loading('Submitting to Algorand blockchain...', { id: 'did-registration' })
+      
+      const registerResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/did/register`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: walletAddress,
+            signedTxn: Buffer.from(signedTxn[0]).toString('base64'),
+          }),
+        }
+      )
+
+      const registerData = await registerResponse.json()
+      if (!registerData.success) {
+        throw new Error(registerData.error || 'Failed to register DID on blockchain')
+      }
+
+      // Step 5: Save to state and localStorage ONLY after blockchain confirmation
+      toast.loading('Waiting for blockchain confirmation...', { id: 'did-registration' })
+      
       const didData = {
         did: createData.data.did,
         ipfsHash: createData.data.ipfsHash,
         didDocument: createData.data.didDocument,
+        transactionId: registerData.data.transactionId,
+        confirmedRound: registerData.data.confirmedRound,
+        explorerUrl: registerData.data.explorerUrl,
       }
+      
       setDidDocument(didData)
       
       // Persist to localStorage
       const storageKey = `did_${walletAddress}`
       localStorage.setItem(storageKey, JSON.stringify(didData))
 
-      // For now, skip on-chain registration (would require wallet signing)
-      // In production, user would sign the transaction and send back the signedTxn
-      
-      toast.success('DID created successfully!')
+      toast.success(
+        `DID registered on-chain! TX: ${registerData.data.transactionId.substring(0, 8)}...`,
+        { id: 'did-registration', duration: 5000 }
+      )
     } catch (err) {
       console.error('Error registering identity:', err)
-      toast.error(err.message || 'Failed to register identity')
+      
+      // Handle user rejection gracefully
+      if (err.message && err.message.includes('cancelled')) {
+        toast.error('Transaction cancelled by user', { id: 'did-registration' })
+      } else {
+        toast.error(err.message || 'Failed to register identity', { id: 'did-registration' })
+      }
     } finally {
       setRegistering(false)
     }
@@ -217,15 +262,31 @@ export const StudentDashboard = () => {
                 <pre className="mt-3 bg-white p-3 rounded text-xs overflow-x-auto border border-green-200 line-clamp-20">
                   {JSON.stringify(didDocument?.didDocument, null, 2)}
                 </pre>
-                <a
-                  href={`https://gateway.pinata.cloud/ipfs/${didDocument?.ipfsHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-green-600 hover:text-green-700 font-medium mt-2 inline-flex items-center gap-1"
-                >
-                  View on IPFS Gateway
-                  <ExternalLink size={14} />
-                </a>
+                <div className="mt-2 space-y-2">
+                  <a
+                    href={`https://gateway.pinata.cloud/ipfs/${didDocument?.ipfsHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-600 hover:text-green-700 font-medium inline-flex items-center gap-1"
+                  >
+                    View on IPFS Gateway
+                    <ExternalLink size={14} />
+                  </a>
+                  {didDocument?.explorerUrl && (
+                    <>
+                      <span className="text-gray-400 mx-2">|</span>
+                      <a
+                        href={didDocument.explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+                      >
+                        View on Algorand Explorer
+                        <ExternalLink size={14} />
+                      </a>
+                    </>
+                  )}
+                </div>
               </details>
             </div>
           )}
