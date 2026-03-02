@@ -6,6 +6,7 @@ import didRoutes from './routes/did.js'
 import credentialRoutes from './routes/credentials.js'
 import servicesRoutes from './routes/services.js'
 import verifyRoutes from './routes/verify.js'
+import selectiveDisclosureRoutes from './routes/selectiveDisclosure.js'
 import { resolveDID } from './utils/didBuilder.js'
 
 dotenv.config()
@@ -111,6 +112,7 @@ app.use('/api/did', didRoutes)
 app.use('/api/credentials', credentialRoutes)
 app.use('/api/services', servicesRoutes)
 app.use('/api/verify', verifyRoutes)
+app.use('/api/selective-disclosure', selectiveDisclosureRoutes)
 
 // Error handling
 app.use((err, req, res, next) => {

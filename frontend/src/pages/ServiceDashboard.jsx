@@ -19,6 +19,8 @@ export const ServiceDashboard = () => {
   const [presentationId, setPresentationId] = useState('')
   const [verifyingPresentation, setVerifyingPresentation] = useState(false)
   const [verificationStats, setVerificationStats] = useState(null)
+  const [studentDid, setStudentDid] = useState('')
+  const [requestingAccess, setRequestingAccess] = useState(false)
 
   const handleRegisterService = async (e) => {
     e.preventDefault()
@@ -138,6 +140,58 @@ export const ServiceDashboard = () => {
       toast.error(err.message || 'Failed to verify presentation')
     } finally {
       setVerifyingPresentation(false)
+    }
+  }
+
+  const handleRequestAccessFromDid = async () => {
+    if (!serviceId || !studentDid.trim()) {
+      toast.error('Please enter a student DID')
+      return
+    }
+
+    try {
+      setRequestingAccess(true)
+
+      // Extract wallet from DID (did:algo:app:APP_ID:WALLET)
+      const didParts = studentDid.split(':')
+      const walletAddress = didParts[didParts.length - 1]
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/selective-disclosure/request`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentDid: studentDid,
+            studentWallet: walletAddress,
+            serviceId: serviceId,
+            serviceName: serviceName,
+            requestedData: ['did', 'credentials'],
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create access request')
+      }
+
+      const requestId = data.data.requestId
+      const shareLink = `${window.location.origin}/share?requestId=${requestId}&serviceId=${serviceId}`
+      
+      toast.success('Access request created!')
+      
+      // Show share link
+      const message = `Share this link with the student:\n\n${shareLink}`
+      alert(message)
+      
+      setStudentDid('')
+    } catch (err) {
+      console.error('Error requesting access:', err)
+      toast.error(err.message || 'Failed to create access request')
+    } finally {
+      setRequestingAccess(false)
     }
   }
 
@@ -306,6 +360,41 @@ export const ServiceDashboard = () => {
                     >
                       {verifyingPresentation && <Loader2 size={18} className="animate-spin" />}
                       {verifyingPresentation ? 'Verifying...' : 'Verify Presentation'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* DID Scanner & Selective Disclosure */}
+                <div className="card bg-indigo-500/10 border-indigo-500/20">
+                  <h3 className="text-lg font-bold text-white mb-4">Scan Student DID</h3>
+                  <p className="text-sm text-secondary mb-4">
+                    Request the student's DID to access their credentials. They will choose what to share with you.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Student DID
+                      </label>
+                      <input
+                        type="text"
+                        value={studentDid}
+                        onChange={(e) => setStudentDid(e.target.value)}
+                        placeholder="did:algo:app:756415000:WALLET_ADDRESS or just wallet address"
+                        className="input-field w-full"
+                      />
+                      <p className="text-xs text-muted mt-2">
+                        Scan QR code or paste the student's DID/wallet address
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleRequestAccessFromDid}
+                      disabled={requestingAccess || !studentDid}
+                      className="btn-primary w-full flex items-center justify-center gap-2"
+                    >
+                      {requestingAccess && <Loader2 size={18} className="animate-spin" />}
+                      {requestingAccess ? 'Creating Request...' : 'Request Access'}
                     </button>
                   </div>
                 </div>

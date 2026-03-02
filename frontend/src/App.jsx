@@ -10,6 +10,7 @@ import { StudentDashboard } from './pages/StudentDashboard'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { ServiceDashboard } from './pages/ServiceDashboard'
 import { ResolveDID } from './pages/ResolveDID'
+import { SelectiveDisclosureRequest } from './pages/SelectiveDisclosureRequest'
 import './index.css'
 
 /**
@@ -32,6 +33,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/resolve" element={<ResolveDID />} />
+          <Route path="/share" element={<SelectiveDisclosureRequest />} />
           <Route path="/student" element={<StudentDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/service" element={<ServiceDashboard />} />
