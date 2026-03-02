@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { useWalletContext } from '../context/WalletContext'
 import { CredentialCard } from '../components/CredentialCard'
 import { SelectiveDisclosure } from '../components/SelectiveDisclosure'
+import { StudentProfileForm } from '../components/StudentProfileForm'
 import { Award, Loader2, AlertCircle, FileText, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import algosdk from 'algosdk'
@@ -21,6 +22,8 @@ export const StudentDashboard = () => {
   const [loading, setLoading] = useState(false)
   const [registering, setRegistering] = useState(false)
   const [showDIDDetails, setShowDIDDetails] = useState(false)
+  const [studentProfile, setStudentProfile] = useState(null)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
 
   // Define fetch functions first (before useEffect)
   const fetchCredentials = useCallback(async () => {
@@ -94,6 +97,27 @@ export const StudentDashboard = () => {
     fetchCredentials()
     fetchDIDDocument()
   }, [walletAddress, isConnected, fetchCredentials, fetchDIDDocument])
+
+  // Load student profile from localStorage
+  React.useEffect(() => {
+    if (!walletAddress) {
+      setStudentProfile(null)
+      return
+    }
+
+    const storageKey = `student_profile_${walletAddress}`
+    const storedProfile = localStorage.getItem(storageKey)
+    if (storedProfile) {
+      try {
+        setStudentProfile(JSON.parse(storedProfile))
+      } catch {
+        setStudentProfile(null)
+      }
+    } else {
+      // Prompt user to complete profile if not already done
+      setProfileModalOpen(true)
+    }
+  }, [walletAddress])
 
   const handleRegisterIdentity = async () => {
     if (!walletAddress) {
@@ -213,6 +237,24 @@ export const StudentDashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
+      {/* Profile Modal */}
+      {profileModalOpen && !studentProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <StudentProfileForm
+                walletAddress={walletAddress}
+                onSave={(profileData) => {
+                  setStudentProfile(profileData)
+                  setProfileModalOpen(false)
+                  toast.success('Profile saved successfully!')
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">My Identity</h1>
@@ -224,26 +266,48 @@ export const StudentDashboard = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* DID Registration */}
           {!didDocument ? (
-            <div className="card bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-blue-900 mb-2">
-                    Register Your Decentralized Identity
-                  </h2>
-                  <p className="text-blue-800 text-sm mb-4">
-                    Create a W3C-compliant DID anchored on Algorand TestNet. Your identity document will be stored on IPFS and referenced on-chain.
-                  </p>
+            <>
+              {!studentProfile ? (
+                <div className="card bg-yellow-50 border-yellow-200">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="text-yellow-600 flex-shrink-0 mt-1" size={24} />
+                    <div className="flex-1">
+                      <h2 className="font-semibold text-yellow-900 mb-2">Complete Your Profile First</h2>
+                      <p className="text-yellow-800 text-sm mb-3">
+                        We need your academic information to issue credentials and verify your identity. Please complete your profile to proceed.
+                      </p>
+                      <button
+                        onClick={() => setProfileModalOpen(true)}
+                        className="btn-secondary text-sm"
+                      >
+                        Complete Profile
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={handleRegisterIdentity}
-                disabled={registering}
-                className="btn-primary flex items-center gap-2"
-              >
-                {registering && <Loader2 size={16} className="animate-spin" />}
-                {registering ? 'Registering...' : 'Register My Identity'}
-              </button>
-            </div>
+              ) : (
+                <div className="card bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold text-blue-900 mb-2">
+                        Register Your Decentralized Identity
+                      </h2>
+                      <p className="text-blue-800 text-sm mb-4">
+                        Create a W3C-compliant DID anchored on Algorand TestNet. Your identity document will be stored on IPFS and referenced on-chain.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleRegisterIdentity}
+                    disabled={registering}
+                    className="btn-primary flex items-center gap-2"
+                  >
+                        {registering && <Loader2 size={16} className="animate-spin" />}
+                    {registering ? 'Registering...' : 'Register My Identity'}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="card border-green-200 bg-green-50">
               <div className="flex items-start gap-3 mb-4">
@@ -288,6 +352,49 @@ export const StudentDashboard = () => {
                   )}
                 </div>
               </details>
+            </div>
+          )}
+
+          {/* Student Profile */}
+          {studentProfile && (
+            <div className="card border-blue-200 bg-blue-50">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="font-semibold text-blue-900 mb-2">Your Academic Profile</h2>
+                  <div className="grid sm:grid-cols-2 gap-4 text-sm mt-3">
+                    <div>
+                      <p className="text-blue-700 font-medium">Full Name</p>
+                      <p className="text-blue-900">{studentProfile.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-700 font-medium">Student ID</p>
+                      <p className="text-blue-900">{studentProfile.studentId}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-700 font-medium">Department</p>
+                      <p className="text-blue-900">{studentProfile.department}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-700 font-medium">Year of Study</p>
+                      <p className="text-blue-900">{studentProfile.yearOfStudy}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-700 font-medium">Email</p>
+                      <p className="text-blue-900">{studentProfile.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-700 font-medium">Mobile</p>
+                      <p className="text-blue-900">{studentProfile.mobileNumber}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setProfileModalOpen(true)}
+                className="btn-secondary text-sm"
+              >
+                Edit Profile
+              </button>
             </div>
           )}
 
