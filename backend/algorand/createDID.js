@@ -25,14 +25,9 @@ export const createDID = async (walletAddress, ipfsHash) => {
 
     // Get suggested parameters
     const params = await algodClient.getTransactionParams().do()
-    
-    // Clear empty note field
-    if (params.note && params.note.length === 0) {
-      params.note = undefined
-    }
 
     // Build application call transaction
-    // Call register_did(ipfsHash) method
+    // Add note field with IPFS hash
     const txn = algosdk.makeApplicationCallTxnFromObject({
       from: walletAddress,
       appIndex: appId,
@@ -41,6 +36,7 @@ export const createDID = async (walletAddress, ipfsHash) => {
         new Uint8Array(Buffer.from('register_did')),
         new Uint8Array(Buffer.from(ipfsHash, 'utf-8')),
       ],
+      note: new Uint8Array(Buffer.from(ipfsHash, 'utf-8')), // Set note to the IPFS hash (non-empty)
       suggestedParams: params,
     })
 
