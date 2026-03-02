@@ -10,27 +10,28 @@ import algosdk from 'algosdk'
  */
 export const createDID = async (walletAddress, ipfsHash) => {
   try {
+    const algodUrl = process.env.ALGORAND_ALGOD_SERVER || 'https://testnet-api.algonode.cloud'
+    const appId = parseInt(process.env.ALGORAND_APP_ID || '756415000')
+
+    if (!appId) {
+      throw new Error('ALGORAND_APP_ID not configured')
+    }
+
     const algodClient = new algosdk.Algodv2(
-      '',
-      process.env.VITE_ALGOD_URL,
-      ''
+      process.env.ALGORAND_ALGOD_TOKEN || '',
+      algodUrl,
+      process.env.ALGORAND_ALGOD_PORT || '443'
     )
 
     // Get suggested parameters
     const params = await algodClient.getTransactionParams().do()
-
-    // App ID from deployment
-    const appId = parseInt(process.env.VITE_APP_ID)
-    if (!appId) {
-      throw new Error('VITE_APP_ID not configured')
-    }
 
     // Build application call transaction
     // Call register_did(ipfsHash) method
     const txn = algosdk.makeApplicationCallTxnFromObject({
       from: walletAddress,
       appIndex: appId,
-      onComplete: algosdk.OnComplete.NoOpOC,
+      onComplete: algosdk.OnCompleteAction.NoOp,
       appArgs: [
         new Uint8Array(Buffer.from('register_did')),
         new Uint8Array(Buffer.from(ipfsHash, 'utf-8')),

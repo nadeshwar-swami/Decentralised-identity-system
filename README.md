@@ -103,8 +103,7 @@ The system implements W3C standards for DIDs and Verifiable Credentials, combine
 📚 **Complete documentation available**:
 - **[USER_GUIDE.md](USER_GUIDE.md)** - User guide for all roles (Student, Admin, Service)
 - **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Complete API reference with all endpoints
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide (Traditional hosting)
-- **[VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)** - 🚀 Vercel deployment guide (Recommended)
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide
 - **[TESTING.md](TESTING.md)** - Comprehensive testing guide and scenarios
 - **[PROGRESS.md](PROGRESS.md)** - Development progress tracker
 

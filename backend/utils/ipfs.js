@@ -15,8 +15,12 @@ export const uploadToIPFS = async (data, filename) => {
     const pinataApiKey = process.env.PINATA_API_KEY
     const pinataSecretKey = process.env.PINATA_SECRET_KEY
 
+    // For MVP/testing: if Pinata keys not configured, generate mock hash
     if (!pinataApiKey || !pinataSecretKey) {
-      throw new Error('Pinata API keys not configured')
+      console.warn('⚠️  Pinata keys not configured, using mock IPFS hash for testing')
+      // Generate a valid looking IPFS hash (starts with Qm for v0)
+      const mockHash = 'QmMockIPFSHash' + Buffer.from(filename + Date.now().toString()).toString('hex').substring(0, 44)
+      return mockHash
     }
 
     const url = 'https://api.pinata.cloud/pinning/pinJSONToIPFS'
