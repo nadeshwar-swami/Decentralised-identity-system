@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { VerifyPanel } from '../components/VerifyPanel'
-import { CheckCircle, Clock, Shield, Loader2, Star, TrendingUp } from 'lucide-react'
+import { CheckCircle, Clock, Shield, Loader2, Star, TrendingUp, Home } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 /**
@@ -8,6 +9,7 @@ import toast from 'react-hot-toast'
  * Feature 8 implementation: Service verification and trust management
  */
 export const ServiceDashboard = () => {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('register') // register, verify, history
   const [verification, setVerification] = useState(null)
   const [verificationHistory, setVerificationHistory] = useState([])
@@ -529,6 +531,18 @@ export const ServiceDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Floating Back to Home Button */}
+      <button
+        onClick={() => navigate('/')}
+        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center gap-2 group"
+        title="Back to Home"
+      >
+        <Home className="w-5 h-5" />
+        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
+          Home
+        </span>
+      </button>
     </div>
   )
 }
