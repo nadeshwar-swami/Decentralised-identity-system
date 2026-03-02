@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Landing } from './pages/Landing'
+import { AdminLogin } from './pages/AdminLogin'
 import { StudentDashboard } from './pages/StudentDashboard'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { ServiceDashboard } from './pages/ServiceDashboard'
@@ -32,6 +33,7 @@ const AppContent = () => {
       <main className="flex-1 bg-gray-50">
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route
             path="/student"
             element={

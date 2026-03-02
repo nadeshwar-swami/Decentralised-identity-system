@@ -52,6 +52,31 @@ const presentations = new Map()
 const revokedPresentations = new Set()
 
 /**
+ * Authorized admin wallets (in-memory for MVP)
+ * In production, use a database with admin role management
+ * Initial setup: Add admin wallets via environment variable or hardcode for testing
+ */
+const authorizedAdmins = new Set(
+  (process.env.AUTHORIZED_ADMINS || '')
+    .split(',')
+    .map(addr => addr.trim())
+    .filter(addr => addr.length === 58)
+)
+
+// Log authorized admins on startup
+if (authorizedAdmins.size > 0) {
+  console.log(`\n🔐 Loaded ${authorizedAdmins.size} authorized admin wallet(s)`)
+  Array.from(authorizedAdmins).forEach(admin => {
+    console.log(`   ✓ ${admin}`)
+  })
+  console.log()
+} else {
+  console.warn('\n⚠️  WARNING: No authorized admins configured!')
+  console.warn('   Set AUTHORIZED_ADMINS env var with comma-separated wallet addresses')
+  console.warn('   Only wallets in AUTHORIZED_ADMINS can issue credentials\n')
+}
+
+/**
  * POST /api/credentials/issue
  * Issue a new credential to a student
  * Admin only endpoint
@@ -93,7 +118,18 @@ router.post('/issue', async (req, res) => {
       })
     }
 
+    // AUTHORIZATION CHECK: Verify issuer is an authorized admin
+    if (!authorizedAdmins.has(normalizedIssuerWallet)) {
+      console.warn(`\n⛔ UNAUTHORIZED: ${normalizedIssuerWallet} attempted to issue credentials`)
+      return res.status(403).json({
+        success: false,
+        error: 'Unauthorized: Only authorized admin wallets can issue credentials',
+        code: 'UNAUTHORIZED_ISSUER',
+      })
+    }
+
     console.log(`\n📜 Issuing credential for ${normalizedStudentWallet}...`)
+    console.log(`   Issuer (Admin): ${normalizedIssuerWallet}`)
 
     // Step 1: Resolve student DID and profile
     // If not provided, look up from storage

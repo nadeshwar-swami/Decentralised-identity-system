@@ -1,18 +1,44 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useWalletContext } from '../context/WalletContext'
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Loader2, CheckCircle, AlertCircle, LogOut } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+// Authorized admin wallets (must match backend AUTHORIZED_ADMINS)
+const AUTHORIZED_ADMINS = [
+  'FVAPL2RSBVYK7IMOUYRKW2HRC34622TWTQKT3GARPDZIUG3QKRPNMEVJX4',
+]
 
 /**
  * AdminDashboard - admin credential issuance
+ * Only authorized admin wallets can access
  */
 export const AdminDashboard = () => {
-  const { walletAddress, isConnected } = useWalletContext()
+  const { walletAddress, isConnected, disconnectWallet } = useWalletContext()
+  const navigate = useNavigate()
 
   const [studentAddress, setStudentAddress] = useState('')
   const [credentialType, setCredentialType] = useState('STUDENT_ENROLLED')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+
+  // Check authorization on mount and when wallet changes
+  useEffect(() => {
+    if (!isConnected || !walletAddress) {
+      setIsAuthorized(false)
+      return
+    }
+
+    const authorized = AUTHORIZED_ADMINS.some(
+      (admin) => admin.toUpperCase() === walletAddress.toUpperCase()
+    )
+    setIsAuthorized(authorized)
+
+    if (!authorized) {
+      console.warn('Unauthorized admin wallet:', walletAddress)
+    }
+  }, [isConnected, walletAddress])
 
   const credentialTypes = [
     { value: 'STUDENT_ENROLLED', label: '📚 Student Enrolled' },
@@ -68,6 +94,12 @@ export const AdminDashboard = () => {
     }
   }
 
+  const handleLogout = () => {
+    disconnectWallet()
+    navigate('/')
+  }
+
+  // Not connected
   if (!isConnected) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -77,8 +109,37 @@ export const AdminDashboard = () => {
             Please connect your wallet to issue credentials
           </p>
           <p className="text-sm text-blue-700 mt-2">
-            Only administrators can issue verifiable credentials
+            Only authorized administrators can access this area
           </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Connected but not authorized
+  if (!isAuthorized) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="card text-center bg-red-50 border-red-200 border-2">
+          <AlertCircle className="inline-block text-red-600 mb-3" size={28} />
+          <p className="text-red-800 font-bold mb-2">⛔ Unauthorized Access</p>
+          <p className="text-red-700 mb-4">
+            Your wallet is not authorized to issue credentials
+          </p>
+          <div className="bg-white p-4 rounded mb-4 text-left">
+            <p className="text-xs text-gray-600 mb-1">Your Wallet:</p>
+            <p className="font-mono text-xs break-all text-gray-900">{walletAddress}</p>
+          </div>
+          <p className="text-sm text-red-700 mb-4">
+            Contact your system administrator to add your wallet to the authorized admins list.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="btn-secondary"
+          >
+            <LogOut size={16} />
+            Logout & Return Home
+          </button>
         </div>
       </div>
     )
