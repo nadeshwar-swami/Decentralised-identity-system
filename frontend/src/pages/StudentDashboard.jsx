@@ -196,6 +196,23 @@ export const StudentDashboard = () => {
       const storageKey = `did_${walletAddress}`
       localStorage.setItem(storageKey, JSON.stringify(didData))
 
+      // Store DID on backend for credential issuance
+      try {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/student/did`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress,
+            did: createData.data.did,
+            displayName: 'Student Identity',
+            ipfsHash: createData.data.ipfsHash,
+          }),
+        })
+      } catch (storageErr) {
+        console.warn('Optional: Failed to store DID on backend:', storageErr)
+        // Not critical - DID is in localStorage
+      }
+
       toast.success(
         `DID registered on-chain! TX: ${registerData.data.transactionId.substring(0, 8)}...`,
         { id: 'did-registration', duration: 5000 }

@@ -28,6 +28,18 @@ const router = express.Router()
 const issuedCredentials = new Map()
 
 /**
+ * Storage for student DIDs (in-memory for MVP)
+ * Key: walletAddress, Value: { did, displayName, ipfsHash, createdAt }
+ */
+const studentDIDs = new Map()
+
+/**
+ * Storage for student profiles (in-memory for MVP)
+ * Key: walletAddress, Value: { fullName, studentId, email, department, yearOfStudy, ... }
+ */
+const studentProfiles = new Map()
+
+/**
  * Storage for verifiable presentations (in-memory for MVP)
  * In production, use a database with audit trail
  */
@@ -43,12 +55,14 @@ const revokedPresentations = new Set()
  * POST /api/credentials/issue
  * Issue a new credential to a student
  * Admin only endpoint
+ * Supports both detailed format (legacy) and simplified format (from AdminDashboard)
  */
 router.post('/issue', async (req, res) => {
   try {
     const {
       studentDID,
       studentWallet,
+      studentAddress,
       studentName,
       program,
       credentialType,
@@ -56,109 +70,136 @@ router.post('/issue', async (req, res) => {
       issuerDID,
       issuerName,
       issuerWallet,
+      issuerAddress,
     } = req.body
 
-    // Validate input
-    if (!studentDID || !studentWallet || !program || !issuerDID || !issuerWallet) {
+    // Normalize addresses
+    const normalizedStudentWallet = studentWallet || studentAddress
+    const normalizedIssuerWallet = issuerWallet || issuerAddress
+
+    // Validate wallet address
+    if (!normalizedStudentWallet || normalizedStudentWallet.length !== 58) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: studentDID, studentWallet, program, issuerDID, issuerWallet',
+        error: 'Invalid student wallet address',
       })
     }
 
-    // Validate wallet addresses
-    if (studentWallet.length !== 58 || issuerWallet.length !== 58) {
+    // Validate issuer
+    if (!normalizedIssuerWallet || normalizedIssuerWallet.length !== 58) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid Algorand wallet address',
+        error: 'Invalid issuer wallet address',
       })
     }
 
-    console.log(`\n📜 Issuing credential for ${studentName}...`)
+    console.log(`\n📜 Issuing credential for ${normalizedStudentWallet}...`)
 
-    // Step 1: Build W3C Verifiable Credential
+    // Step 1: Resolve student DID and profile
+    // If not provided, look up from storage
+    const resolvedStudentDID = studentDID || 
+      (studentDIDs.has(normalizedStudentWallet) 
+        ? studentDIDs.get(normalizedStudentWallet).did 
+        : `did:algo:testnet:${normalizedStudentWallet}`)
+
+    const resolvedStudentName = studentName || 
+      (studentProfiles.has(normalizedStudentWallet)
+        ? studentProfiles.get(normalizedStudentWallet).fullName
+        : 'Student')
+
+    const studentProfile = studentProfiles.has(normalizedStudentWallet)
+      ? studentProfiles.get(normalizedStudentWallet)
+      : {}
+
+    const resolvedProgram = program || studentProfile.department || 'Academic Credential'
+
+    console.log(`  ✓ Student: ${resolvedStudentName}`)
+    console.log(`  ✓ DID: ${resolvedStudentDID}`)
+    console.log(`  ✓ Type: ${credentialType}`)
+
+    // Step 2: Build W3C Verifiable Credential
     console.log('  ✓ Building credential...')
     const credential = buildVerifiableCredential({
-      studentDID,
-      credentialType: credentialType || 'Certificate',
-      program,
-      description: description || '',
-      issuerDID,
-      issuerName,
+      studentDID: resolvedStudentDID,
+      credentialType: credentialType || 'AcademicRecord',
+      program: resolvedProgram,
+      description: description || `${credentialType || 'Academic'} Credential`,
+      issuerDID: issuerDID || `did:algo:testnet:${normalizedIssuerWallet}`,
+      issuerName: issuerName || 'University Administrator',
       issuanceDate: new Date(),
+      studentProfile, // Include full profile in credential
     })
 
     // Validate credential structure
     validateCredential(credential)
 
-    // Step 2: Upload credential to IPFS
+    // Step 3: Upload credential to IPFS
     console.log('  ✓ Uploading to IPFS...')
-    const credentialFilename = `credential-${studentWallet}-${Date.now()}.json`
+    const credentialFilename = `credential-${normalizedStudentWallet}-${Date.now()}.json`
     const ipfsHash = await uploadToIPFS(credential, credentialFilename)
     console.log(`  ✓ IPFS Hash: ${ipfsHash}`)
 
-    // Step 3: Build NFT metadata
+    // Step 4: Build NFT metadata
     console.log('  ✓ Creating NFT metadata...')
     const nftMetadata = buildNFTMetadata({
       credentialId: credential.id,
-      program,
-      issuerName,
-      studentName: studentName || 'Student',
+      program: resolvedProgram,
+      issuerName: issuerName || 'University',
+      studentName: resolvedStudentName,
       issueDate: new Date().toISOString(),
       ipfsHash,
-      credentialType: credentialType || 'Certificate',
-      description: description || '',
+      credentialType: credentialType || 'AcademicRecord',
+      description: description || 'Verifiable academic credential',
     })
 
     validateNFTMetadata(nftMetadata)
 
-    // Step 4: Upload NFT metadata to IPFS
+    // Step 5: Upload NFT metadata to IPFS
     console.log('  ✓ Uploading NFT metadata...')
-    const metadataFilename = `nft-metadata-${studentWallet}-${Date.now()}.json`
+    const metadataFilename = `nft-metadata-${normalizedStudentWallet}-${Date.now()}.json`
     const metadataIPFSHash = await uploadToIPFS(nftMetadata, metadataFilename)
     console.log(`  ✓ NFT Metadata IPFS Hash: ${metadataIPFSHash}`)
 
-    // Step 5: Create unsigned transaction for NFT creation
-    // In production, you would create an ASA (Algorand Standard Asset) here
-    // For MVP, we'll store the credential and return the transaction template
-    console.log('  ✓ Preparing NFT creation transaction...')
-
+    // Step 6: Store credential
     const credentialId = credential.id
     const credentialRecord = {
       id: credentialId,
-      studentDID,
-      studentWallet,
-      studentName,
-      program,
-      credentialType,
-      issuerDID,
-      issuerWallet,
-      issuerName,
+      studentDID: resolvedStudentDID,
+      studentWallet: normalizedStudentWallet,
+      studentName: resolvedStudentName,
+      studentProfile,
+      program: resolvedProgram,
+      credentialType: credentialType || 'AcademicRecord',
+      issuerDID: issuerDID || `did:algo:testnet:${normalizedIssuerWallet}`,
+      issuerWallet: normalizedIssuerWallet,
+      issuerName: issuerName || 'University Administrator',
       credential,
       nftMetadata,
       ipfsHash,
       metadataIPFSHash,
       issuedAt: new Date().toISOString(),
-      status: 'pending_nft_creation',
+      status: 'issued',
     }
 
-    // Store credential
     issuedCredentials.set(credentialId, credentialRecord)
 
-    // Step 6: Return response
+    // Step 7: Return response
     const response = {
       success: true,
       data: {
         credentialId,
-        studentDID,
-        program,
-        credentialType: credentialType || 'Certificate',
-        issuer: issuerName,
+        studentDID: resolvedStudentDID,
+        studentName: resolvedStudentName,
+        program: resolvedProgram,
+        credentialType: credentialType || 'AcademicRecord',
+        issuer: issuerName || 'University',
         issuedAt: credentialRecord.issuedAt,
         ipfsHash,
         metadataIPFSHash,
         status: 'issued',
-        message: 'Credential created. NFT creation transaction can be submitted separately.',
+        assetId: `ASSET_${credentialId.slice(0, 8)}`, // Simulated NFT asset ID
+        txnId: `TXN_${generateUUID()}`, // Simulated transaction ID
+        message: 'Credential issued successfully',
         credentialPreview: getPresentationFormat(credential),
       },
     }
@@ -166,8 +207,8 @@ router.post('/issue', async (req, res) => {
     res.json(response)
 
     console.log(`✅ Credential issued: ${credentialId}`)
-    console.log(`   Student: ${studentName}`)
-    console.log(`   Program: ${program}\n`)
+    console.log(`   Student: ${resolvedStudentName}`)
+    console.log(`   Program: ${resolvedProgram}\n`)
   } catch (err) {
     console.error('❌ Error issuing credential:', err.message)
     res.status(500).json({
@@ -662,6 +703,150 @@ router.post('/presentations/:presentationId/revoke', async (req, res) => {
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to revoke presentation',
+    })
+  }
+})
+
+/**
+ * POST /api/student/profile
+ * Store student profile information
+ * Called when student completes their profile
+ */
+router.post('/student/profile', async (req, res) => {
+  try {
+    const {
+      walletAddress,
+      fullName,
+      studentId,
+      email,
+      dateOfBirth,
+      admissionNumber,
+      mobileNumber,
+      department,
+      yearOfStudy,
+    } = req.body
+
+    // Validate wallet
+    if (!walletAddress || walletAddress.length !== 58) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid wallet address',
+      })
+    }
+
+    // Store profile
+    const profileData = {
+      walletAddress,
+      fullName,
+      studentId,
+      email,
+      dateOfBirth,
+      admissionNumber,
+      mobileNumber,
+      department,
+      yearOfStudy,
+      storedAt: new Date().toISOString(),
+    }
+
+    studentProfiles.set(walletAddress, profileData)
+
+    console.log(`✅ Student profile stored for ${walletAddress}`)
+
+    res.json({
+      success: true,
+      data: profileData,
+    })
+  } catch (err) {
+    console.error('❌ Error storing student profile:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to store profile',
+    })
+  }
+})
+
+/**
+ * POST /api/student/did
+ * Store student DID information
+ * Called when student creates and registers their DID
+ */
+router.post('/student/did', async (req, res) => {
+  try {
+    const { walletAddress, did, displayName, ipfsHash } = req.body
+
+    // Validate wallet
+    if (!walletAddress || walletAddress.length !== 58) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid wallet address',
+      })
+    }
+
+    if (!did || !displayName) {
+      return res.status(400).json({
+        success: false,
+        error: 'DID and displayName are required',
+      })
+    }
+
+    // Store DID
+    const didData = {
+      walletAddress,
+      did,
+      displayName,
+      ipfsHash,
+      createdAt: new Date().toISOString(),
+    }
+
+    studentDIDs.set(walletAddress, didData)
+
+    console.log(`✅ Student DID stored for ${walletAddress}: ${did}`)
+
+    res.json({
+      success: true,
+      data: didData,
+    })
+  } catch (err) {
+    console.error('❌ Error storing student DID:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to store DID',
+    })
+  }
+})
+
+/**
+ * GET /api/student/:walletAddress
+ * Get stored student profile and DID information
+ */
+router.get('/student/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params
+
+    // Validate wallet
+    if (!walletAddress || walletAddress.length !== 58) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid wallet address',
+      })
+    }
+
+    const profile = studentProfiles.get(walletAddress)
+    const did = studentDIDs.get(walletAddress)
+
+    res.json({
+      success: true,
+      data: {
+        walletAddress,
+        profile: profile || null,
+        did: did || null,
+      },
+    })
+  } catch (err) {
+    console.error('❌ Error retrieving student data:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to retrieve student data',
     })
   }
 })
