@@ -25,6 +25,11 @@ export const createDID = async (walletAddress, ipfsHash) => {
 
     // Get suggested parameters
     const params = await algodClient.getTransactionParams().do()
+    
+    // Clear empty note field
+    if (params.note && params.note.length === 0) {
+      params.note = undefined
+    }
 
     // Build application call transaction
     // Call register_did(ipfsHash) method
