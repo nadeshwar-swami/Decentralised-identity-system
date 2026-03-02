@@ -137,7 +137,7 @@ Services verify student credentials (employers, library, hostel, events).
 ## 📱 Navigation
 
 ### Main Navigation Bar
-- **Logo (🔒 Campus DID)**: Click to return home
+- **Logo (Campus DID)**: Click to return home
 - **Role Switcher**: Toggle between Student/Admin/Service
 - **Wallet Connect**: Connect/Disconnect Pera Wallet
 
@@ -184,7 +184,7 @@ Credentials follow W3C Verifiable Credentials standard:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### For Students
 1. Install Pera Wallet browser extension

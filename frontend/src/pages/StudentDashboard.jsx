@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useWalletContext } from '../context/WalletContext'
 import { CredentialCard } from '../components/CredentialCard'
 import { SelectiveDisclosure } from '../components/SelectiveDisclosure'
 import { StudentProfileForm } from '../components/StudentProfileForm'
-import { Award, Loader2, AlertCircle, FileText, ExternalLink, ArrowLeft } from 'lucide-react'
+import { Award, Loader2, AlertCircle, FileText, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import algosdk from 'algosdk'
 
@@ -16,7 +15,6 @@ const INITIAL_FETCH_DEDUPE_WINDOW_MS = 1500
  * Feature 6: Student Credentials UI
  */
 export const StudentDashboard = () => {
-  const navigate = useNavigate()
   const { walletAddress, isConnected, signTransaction } = useWalletContext()
 
   const [credentials, setCredentials] = useState([])
@@ -171,6 +169,8 @@ export const StudentDashboard = () => {
           body: JSON.stringify({
             walletAddress: walletAddress,
             signedTxn: Buffer.from(signedTxn[0]).toString('base64'),
+            ipfsHash: createData.data.ipfsHash,
+            didDocument: createData.data.didDocument,
           }),
         }
       )
@@ -200,7 +200,7 @@ export const StudentDashboard = () => {
 
       // Store DID on backend for credential issuance
       try {
-        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/student/did`, {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/credentials/student/did`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -235,16 +235,16 @@ export const StudentDashboard = () => {
 
   if (!isConnected) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="card bg-blue-50 border-blue-200 border-2">
+      <div className="page-bg page-shell">
+        <div className="card bg-orange-500/10 border-orange-500/20">
           <div className="flex items-start gap-4">
-            <AlertCircle className="text-blue-600 flex-shrink-0 mt-1" size={24} />
+            <AlertCircle className="text-orange-400 flex-shrink-0 mt-1" size={24} />
             <div>
-              <h3 className="font-semibold text-blue-900 text-lg mb-1">Connect Your Wallet</h3>
-              <p className="text-blue-800">
+              <h3 className="font-semibold text-orange-300 text-lg mb-1">Connect Your Wallet</h3>
+              <p className="text-orange-300/80">
                 Click the "Connect Wallet" button in the top right to connect Pera Wallet and access your identity dashboard.
               </p>
-              <p className="text-sm text-blue-700 mt-2">
+              <p className="text-sm text-orange-400/80 mt-2">
                 Make sure you have Pera Wallet installed and are on the Algorand TestNet.
               </p>
             </div>
@@ -255,11 +255,18 @@ export const StudentDashboard = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className="page-bg page-shell">
       {/* Profile Modal */}
       {profileModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 pt-20">
+          <div className="card rounded-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto relative">
+            <button
+              onClick={() => setProfileModalOpen(false)}
+              className="absolute top-6 right-6 text-secondary hover:text-white text-2xl leading-none z-20"
+              title="Close"
+            >
+              ×
+            </button>
             <div className="p-8">
               <StudentProfileForm
                 walletAddress={walletAddress}
@@ -276,10 +283,14 @@ export const StudentDashboard = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Identity</h1>
-        <p className="text-gray-600">Manage your DID and verifiable credentials</p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">My Identity</h1>
+          <p className="page-subtitle">Manage your DID, profile data, and verifiable credentials.</p>
+        </div>
+        <div className="badge-info">
+          <span className="w-2 h-2 bg-indigo-500 rounded-full" /> Student Workspace
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -289,12 +300,12 @@ export const StudentDashboard = () => {
           {!didDocument ? (
             <>
               {!studentProfile ? (
-                <div className="card bg-yellow-50 border-yellow-200">
+                <div className="card bg-amber-500/10 border-amber-500/20">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="text-yellow-600 flex-shrink-0 mt-1" size={24} />
+                    <AlertCircle className="text-amber-400 flex-shrink-0 mt-1" size={24} />
                     <div className="flex-1">
-                      <h2 className="font-semibold text-yellow-900 mb-2">Complete Your Profile First</h2>
-                      <p className="text-yellow-800 text-sm mb-3">
+                      <h2 className="font-semibold text-amber-300 mb-2">Complete Your Profile First</h2>
+                      <p className="text-amber-300/80 text-sm mb-3">
                         We need your academic information to issue credentials and verify your identity. Please complete your profile to proceed.
                       </p>
                       <button
@@ -307,13 +318,13 @@ export const StudentDashboard = () => {
                   </div>
                 </div>
               ) : (
-                <div className="card bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                <div className="panel-card bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border-indigo-500/20">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="text-xl font-semibold text-blue-900 mb-2">
+                      <h2 className="text-xl font-semibold text-indigo-300 mb-2">
                         Register Your Decentralized Identity
                       </h2>
-                      <p className="text-blue-800 text-sm mb-4">
+                      <p className="text-indigo-300/80 text-sm mb-4">
                         Create a W3C-compliant DID anchored on Algorand TestNet. Your identity document will be stored on IPFS and referenced on-chain.
                       </p>
                     </div>
@@ -330,21 +341,21 @@ export const StudentDashboard = () => {
               )}
             </>
           ) : (
-            <div className="card border-green-200 bg-green-50">
+            <div className="panel-card border-emerald-500/20 bg-emerald-500/10">
               <div className="flex items-start gap-3 mb-4">
                 <span className="text-2xl">✓</span>
                 <div className="flex-1">
-                  <h2 className="font-semibold text-green-900">DID Successfully Registered</h2>
-                  <p className="text-sm text-green-800 mt-1 font-mono break-all bg-white px-3 py-2 rounded mt-2 border border-green-200">
+                  <h2 className="font-semibold text-emerald-300">DID Successfully Registered</h2>
+                  <p className="text-sm text-emerald-300/80 mt-1 font-mono break-all bg-white/5 px-3 py-2 rounded mt-2 border border-white/10">
                     {didDocument?.did}
                   </p>
                 </div>
               </div>
               <details className="text-sm">
-                <summary className="cursor-pointer font-medium text-green-900 hover:text-green-700 p-2 bg-white rounded">
+                <summary className="cursor-pointer font-medium text-emerald-300 hover:text-emerald-200 p-2 bg-white/5 rounded">
                   📄 View DID Document
                 </summary>
-                <pre className="mt-3 bg-white p-3 rounded text-xs overflow-x-auto border border-green-200 line-clamp-20">
+                <pre className="mt-3 bg-white/5 p-3 rounded text-xs overflow-x-auto border border-white/10 line-clamp-20">
                   {JSON.stringify(didDocument?.didDocument, null, 2)}
                 </pre>
                 <div className="mt-2 space-y-2">
@@ -352,19 +363,19 @@ export const StudentDashboard = () => {
                     href={`https://gateway.pinata.cloud/ipfs/${didDocument?.ipfsHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-green-600 hover:text-green-700 font-medium inline-flex items-center gap-1"
+                    className="text-sm text-cyan-400 hover:text-cyan-300 font-medium inline-flex items-center gap-1"
                   >
                     View on IPFS Gateway
                     <ExternalLink size={14} />
                   </a>
                   {didDocument?.explorerUrl && (
                     <>
-                      <span className="text-gray-400 mx-2">|</span>
+                      <span className="text-white/20 mx-2">|</span>
                       <a
                         href={didDocument.explorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+                        className="text-sm text-indigo-400 hover:text-indigo-300 font-medium inline-flex items-center gap-1"
                       >
                         View on Algorand Explorer
                         <ExternalLink size={14} />
@@ -378,34 +389,34 @@ export const StudentDashboard = () => {
 
           {/* Student Profile */}
           {studentProfile && (
-            <div className="card border-blue-200 bg-blue-50">
+            <div className="panel-card border-indigo-500/20 bg-indigo-500/10">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="font-semibold text-blue-900 mb-2">Your Academic Profile</h2>
+                  <h2 className="font-semibold text-indigo-300 mb-2">Your Academic Profile</h2>
                   <div className="grid sm:grid-cols-2 gap-4 text-sm mt-3">
                     <div>
-                      <p className="text-blue-700 font-medium">Full Name</p>
-                      <p className="text-blue-900">{studentProfile.fullName}</p>
+                      <p className="text-indigo-400 font-medium">Full Name</p>
+                      <p className="text-white">{studentProfile.fullName}</p>
                     </div>
                     <div>
-                      <p className="text-blue-700 font-medium">Student ID</p>
-                      <p className="text-blue-900">{studentProfile.studentId}</p>
+                      <p className="text-indigo-400 font-medium">Student ID</p>
+                      <p className="text-white">{studentProfile.studentId}</p>
                     </div>
                     <div>
-                      <p className="text-blue-700 font-medium">Department</p>
-                      <p className="text-blue-900">{studentProfile.department}</p>
+                      <p className="text-indigo-400 font-medium">Department</p>
+                      <p className="text-white">{studentProfile.department}</p>
                     </div>
                     <div>
-                      <p className="text-blue-700 font-medium">Year of Study</p>
-                      <p className="text-blue-900">{studentProfile.yearOfStudy}</p>
+                      <p className="text-indigo-400 font-medium">Year of Study</p>
+                      <p className="text-white">{studentProfile.yearOfStudy}</p>
                     </div>
                     <div>
-                      <p className="text-blue-700 font-medium">Email</p>
-                      <p className="text-blue-900">{studentProfile.email}</p>
+                      <p className="text-indigo-400 font-medium">Email</p>
+                      <p className="text-white">{studentProfile.email}</p>
                     </div>
                     <div>
-                      <p className="text-blue-700 font-medium">Mobile</p>
-                      <p className="text-blue-900">{studentProfile.mobileNumber}</p>
+                      <p className="text-indigo-400 font-medium">Mobile</p>
+                      <p className="text-white">{studentProfile.mobileNumber}</p>
                     </div>
                   </div>
                 </div>
@@ -419,7 +430,7 @@ export const StudentDashboard = () => {
                     : 'btn-secondary text-sm'
                 }`}
               >
-                {credentials.length > 0 ? '🔒 Profile Locked' : 'Edit Profile'}
+                {credentials.length > 0 ? '[LOCKED] Profile Locked' : 'Edit Profile'}
               </button>
             </div>
           )}
@@ -427,9 +438,9 @@ export const StudentDashboard = () => {
           {/* Credentials List */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">My Credentials</h2>
+              <h2 className="text-xl font-semibold text-white">My Credentials</h2>
               {credentials.length > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+                <div className="flex items-center gap-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-sm font-semibold border border-indigo-500/20">
                   <Award size={16} />
                   {credentials.length}
                 </div>
@@ -438,12 +449,12 @@ export const StudentDashboard = () => {
             
             {loading ? (
               <div className="card text-center">
-                <Loader2 className="animate-spin mx-auto text-blue-600" size={32} />
-                <p className="text-gray-600 mt-3">Loading credentials...</p>
+                <Loader2 className="animate-spin mx-auto text-indigo-400" size={32} />
+                <p className="text-secondary mt-3">Loading credentials...</p>
               </div>
             ) : credentials.length === 0 ? (
-              <div className="card text-center text-gray-500">
-                <Award size={48} className="mx-auto text-gray-300 mb-3" />
+              <div className="card text-center text-muted">
+                <Award size={48} className="mx-auto text-secondary mb-3" />
                 <p className="text-lg font-medium">No credentials yet</p>
                 <p className="text-sm mt-1">
                   {didDocument 
@@ -468,26 +479,26 @@ export const StudentDashboard = () => {
         <div className="space-y-6">
           {/* Wallet Info */}
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span>💼</span> Wallet
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <span>Wallet</span>
             </h3>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Address</p>
-                <p className="font-mono text-xs bg-gray-100 p-2 rounded break-all mt-1 border border-gray-200">
+                <p className="text-muted text-xs uppercase tracking-wide">Address</p>
+                <p className="font-mono text-xs bg-white/5 p-2 rounded break-all mt-1 border border-white/10">
                   {walletAddress}
                 </p>
               </div>
-              <div className="pt-2 border-t border-gray-200">
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Network</p>
-                <p className="text-sm font-medium text-blue-600 mt-1">
-                  🌍 Algorand TestNet
+              <div className="pt-2 border-t border-white/10">
+                <p className="text-muted text-xs uppercase tracking-wide">Network</p>
+                <p className="text-sm font-medium text-cyan-400 mt-1">
+                  Algorand TestNet
                 </p>
               </div>
-              <div className="pt-2 border-t border-gray-200">
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Status</p>
-                <p className="text-sm font-medium text-green-600 mt-1 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+              <div className="pt-2 border-t border-white/10">
+                <p className="text-muted text-xs uppercase tracking-wide">Status</p>
+                <p className="text-sm font-medium text-emerald-400 mt-1 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
                   Connected
                 </p>
               </div>
@@ -497,10 +508,10 @@ export const StudentDashboard = () => {
           {/* Share Credentials */}
           {credentials.length > 0 && (
             <div className="card">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <span>🔒</span> Share Credentials
+              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                Share Credentials
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-secondary mb-4">
                 Selectively disclose your credentials to campus services
               </p>
               <SelectiveDisclosure credentials={credentials} />
@@ -509,26 +520,26 @@ export const StudentDashboard = () => {
 
           {/* Quick Stats */}
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span>📊</span> Quick Stats
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <span>Quick Stats</span>
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Total Credentials</span>
-                <span className="font-bold text-2xl text-blue-600">{credentials.length}</span>
+                <span className="text-secondary text-sm">Total Credentials</span>
+                <span className="font-bold text-2xl text-indigo-400">{credentials.length}</span>
               </div>
-              <div className="h-px bg-gray-200"></div>
+              <div className="h-px bg-white/10"></div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Identity</span>
-                <span className={`text-lg ${didDocument ? 'text-green-600' : 'text-gray-400'}`}>
+                <span className="text-secondary text-sm">Identity</span>
+                <span className={`text-lg ${didDocument ? 'text-emerald-400' : 'text-muted'}`}>
                   {didDocument ? '✓ Registered' : 'Not Registered'}
                 </span>
               </div>
-              <div className="h-px bg-gray-200"></div>
+              <div className="h-px bg-white/10"></div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Status</span>
-                <span className="text-sm font-medium text-green-600 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                <span className="text-secondary text-sm">Status</span>
+                <span className="text-sm font-medium text-emerald-400 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
                   Active
                 </span>
               </div>
@@ -536,18 +547,6 @@ export const StudentDashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Floating Back to Home Button */}
-      <button
-        onClick={() => navigate('/')}
-        className="fixed top-6 left-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center gap-2"
-        title="Back to Home"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        <span className="font-medium">
-          Back to Home
-        </span>
-      </button>
     </div>
   )
 }

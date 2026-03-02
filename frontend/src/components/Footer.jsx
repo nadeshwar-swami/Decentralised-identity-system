@@ -1,99 +1,59 @@
-import { Github, Twitter, Globe } from 'lucide-react'
+import { Globe } from 'lucide-react'
+import { Logo } from './Logo'
 
 /**
  * Footer component - app footer with links and info
  */
 export const Footer = () => {
   return (
-    <footer className="bg-white border-t border-gray-200 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* About */}
+    <footer className="bg-black/50 border-t border-white/5 mt-auto backdrop-blur">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
+        <div className="grid md:grid-cols-3 gap-10">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🔒</span>
-              <h3 className="font-bold text-gray-900">Campus DID</h3>
+            <div className="flex items-center gap-3 mb-3">
+              <Logo size={32} className="text-indigo-400" />
+              <h3 className="font-bold text-white font-display">Campus DID</h3>
             </div>
-            <p className="text-sm text-gray-600">
-              Decentralized identity system for campus ecosystems, built on Algorand TestNet.
+            <p className="text-sm text-secondary leading-relaxed">
+              Professional identity and credential workflows for students, institutions, and campus services.
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Quick Links</h4>
+            <h4 className="font-semibold text-white font-display mb-3">Workspaces</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <a href="/" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a href="/student" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Student Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="/admin" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Admin Portal
-                </a>
-              </li>
-              <li>
-                <a href="/service" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Service Verification
-                </a>
-              </li>
+              <li><a href="/" className="text-secondary hover:text-indigo-400 transition-colors">Home</a></li>
+              <li><a href="/student" className="text-secondary hover:text-indigo-400 transition-colors">Student Workspace</a></li>
+              <li><a href="/admin" className="text-secondary hover:text-indigo-400 transition-colors">Issuance Workspace</a></li>
+              <li><a href="/service" className="text-secondary hover:text-indigo-400 transition-colors">Verification Workspace</a></li>
             </ul>
           </div>
 
-          {/* Resources */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Resources</h4>
+            <h4 className="font-semibold text-white font-display mb-3">Standards</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a
-                  href="https://developer.algorand.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center gap-1"
-                >
-                  Algorand Docs
-                  <Globe size={14} />
+                <a href="https://developer.algorand.org" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-cyan-400 transition-colors inline-flex items-center gap-1">
+                  Algorand Docs <Globe size={14} />
                 </a>
               </li>
               <li>
-                <a
-                  href="https://www.w3.org/TR/did-core/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center gap-1"
-                >
-                  W3C DID Spec
-                  <Globe size={14} />
+                <a href="https://www.w3.org/TR/did-core/" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-cyan-400 transition-colors inline-flex items-center gap-1">
+                  W3C DID Core <Globe size={14} />
                 </a>
               </li>
               <li>
-                <a
-                  href="https://www.w3.org/TR/vc-data-model/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center gap-1"
-                >
-                  W3C VC Spec
-                  <Globe size={14} />
+                <a href="https://www.w3.org/TR/vc-data-model/" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-cyan-400 transition-colors inline-flex items-center gap-1">
+                  W3C VC Data Model <Globe size={14} />
                 </a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 mt-8 pt-6 text-center text-sm text-gray-600">
-          <p>
-            Campus DID MVP • Built with React, Algorand, and W3C Standards • Algorand TestNet
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            App ID: 756415000 • For educational and demonstration purposes
-          </p>
+        <div className="border-t border-white/5 mt-8 pt-6 text-sm text-secondary flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <p>Campus DID MVP • Algorand TestNet</p>
+          <p className="text-xs text-muted">Built for secure desktop-first campus identity UX</p>
         </div>
       </div>
     </footer>

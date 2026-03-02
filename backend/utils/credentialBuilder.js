@@ -60,7 +60,7 @@ export const buildVerifiableCredential = (params) => {
     issuanceDate: issuanceISO,
     ...(expirationISO && { expirationDate: expirationISO }),
     credentialStatus: {
-      id: `did:algo:testnet:status#${generateUUID()}`,
+      id: `did:algo:app:${process.env.ALGORAND_APP_ID || '756415000'}:status#${generateUUID()}`,
       type: 'ARC52CredentialStatus',
     },
     proof: {

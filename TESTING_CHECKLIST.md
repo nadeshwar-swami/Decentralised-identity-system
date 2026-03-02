@@ -8,12 +8,12 @@ Complete guide to test all 10 features + deployments.
 
 Before testing, ensure:
 
-- ✅ Backend running: `npm run dev` (port 3001)
-- ✅ Frontend running: `npm run dev` (port 5173)  
-- ✅ Wallet installed: Pera Wallet or Web Wallet
-- ✅ Algorand TestNet selected in wallet
-- ✅ Have test ALGO: https://dispenser.testnet.aws.algodev.network/
-- ✅ `.env` files properly configured in `backend/` and `frontend/`
+- [OK] Backend running: `npm run dev` (port 3001)
+- [OK] Frontend running: `npm run dev` (port 5173)  
+- [OK] Wallet installed: Pera Wallet or Web Wallet
+- [OK] Algorand TestNet selected in wallet
+- [OK] Have test ALGO: https://dispenser.testnet.aws.algodev.network/
+- [OK] `.env` files properly configured in `backend/` and `frontend/`
 
 ---
 
@@ -50,11 +50,11 @@ Before testing, ensure:
 
 ---
 
-## Test 2: DID Creation & Management ✅ COMPLETED
+## Test 2: DID Creation & Management [COMPLETED]
 
 ### 2.1 Create DID (Student Role)
 **Expected**: Student can generate new DID Document
-**Status**: ✅ PASSED
+**Status**: [OK] PASSED
 
 - [x] Go to **Student Dashboard**
 - [x] In "My DIDs" section, click **Create DID**
@@ -65,7 +65,7 @@ Before testing, ensure:
 
 ### 2.2 Register DID (Save to Chain)
 **Expected**: DID persists on Algorand blockchain
-**Status**: ✅ PASSED
+**Status**: [OK] PASSED
 
 - [x] After DID created, click **Register to Chain**
 - [x] Approve transaction in wallet
@@ -81,9 +81,9 @@ Before testing, ensure:
 **Expected**: Admin can issue credentials to students based on their profile data
 
 **Prerequisites**:
-- ✅ Student has completed their profile (Test with Profile Lock)
-- ✅ Student has created and registered their DID on-chain
-- ✅ Both servers running: backend (3001) + frontend (5173)
+- [OK] Student has completed their profile (Test with Profile Lock)
+- [OK] Student has created and registered their DID on-chain
+- [OK] Both servers running: backend (3001) + frontend (5173)
 
 **Setup Instructions**:
 
@@ -128,7 +128,7 @@ Before testing, ensure:
   - Transaction ID (clickable link to Algorand Explorer)
   - IPFS Hash
 
-**Success Indicators** ✅:
+**Success Indicators** [OK]:
 - [ ] Form accepted your wallet address
 - [ ] No error messages
 - [ ] Success card appeared with credential details
@@ -182,7 +182,7 @@ curl "http://localhost:3001/api/credentials/details/$credentialId" | ConvertFrom
 - [ ] Click **View Details** on credential
 - [ ] Verify you can see full credential data
 
-**Success Indicators** ✅:
+**Success Indicators** [OK]:
 - [ ] API returns full credential JSON
 - [ ] Credential includes student's profile data
 - [ ] Student Dashboard shows issued credential
@@ -210,7 +210,7 @@ curl "http://localhost:3001/api/credentials/details/$credentialId" | ConvertFrom
   - Status (e.g., "Active")
 - [x] Click **View Details** on credential
 - [x] Full metadata visible (including student profile data)
-- [x] Profile is now **LOCKED** - Edit Profile button shows 🔒 (due to Test 2 implementation)
+- [x] Profile is now **LOCKED** - Edit Profile button shows [LOCK] (due to Test 2 implementation)
 
 **Troubleshooting**:
 - If credential not showing: 
@@ -294,8 +294,8 @@ curl "http://localhost:3001/api/credentials/details/$credentialId" | ConvertFrom
 - [ ] Click **Verify**
 - [ ] Wait for validation
 - [ ] Result shows:
-  - ✅ "Verification Successful" OR
-  - ❌ "Invalid Presentation"
+  - [OK] "Verification Successful" OR
+  - [ERROR] "Invalid Presentation"
 - [ ] Shows verified fields
 
 **Troubleshooting**:

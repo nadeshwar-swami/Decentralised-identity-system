@@ -22,23 +22,23 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-lg w-full bg-white rounded-lg shadow-lg p-8 border-2 border-red-200">
+        <div className="min-h-screen page-bg flex items-center justify-center p-4">
+          <div className="max-w-lg w-full card rounded-lg p-8 border-2 border-red-500/20">
             <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="text-red-600" size={32} />
-              <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
+              <AlertTriangle className="text-red-400" size={32} />
+              <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
             </div>
             
-            <p className="text-gray-600 mb-4">
+            <p className="text-secondary mb-4">
               An unexpected error occurred. Please try refreshing the page.
             </p>
 
             {this.state.error && (
               <details className="mb-4">
-                <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                <summary className="cursor-pointer text-sm font-medium text-white hover:text-secondary">
                   Error details
                 </summary>
-                <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto max-h-40 text-red-600">
+                <pre className="mt-2 text-xs bg-white/5 p-3 rounded overflow-auto max-h-40 text-red-400 border border-white/10">
                   {this.state.error.toString()}
                   {this.state.errorInfo && this.state.errorInfo.componentStack}
                 </pre>

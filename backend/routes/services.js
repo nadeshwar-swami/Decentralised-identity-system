@@ -5,6 +5,9 @@
  */
 
 import express from 'express'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import {
   buildVerificationRecord,
   buildServiceProfile,
@@ -17,11 +20,54 @@ import {
 
 const router = express.Router()
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const servicesDataDir = path.join(__dirname, '..', 'data')
+const servicesDataFile = path.join(servicesDataDir, 'registered-services.json')
+
 /**
  * Storage for registered services (in-memory for MVP)
  * In production, use a database
  */
 const registeredServices = new Map()
+
+const persistRegisteredServices = () => {
+  fs.mkdirSync(servicesDataDir, { recursive: true })
+  fs.writeFileSync(
+    servicesDataFile,
+    JSON.stringify(Array.from(registeredServices.entries()), null, 2),
+    'utf-8'
+  )
+}
+
+const loadRegisteredServices = () => {
+  try {
+    if (!fs.existsSync(servicesDataFile)) {
+      return
+    }
+
+    const raw = fs.readFileSync(servicesDataFile, 'utf-8')
+    const entries = JSON.parse(raw)
+
+    if (!Array.isArray(entries)) {
+      return
+    }
+
+    for (const [id, service] of entries) {
+      if (id && service) {
+        registeredServices.set(id, service)
+      }
+    }
+
+    if (registeredServices.size > 0) {
+      console.log(`✓ Loaded ${registeredServices.size} persisted service(s)`)
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not load persisted services:', err.message)
+  }
+}
+
+loadRegisteredServices()
 
 /**
  * Storage for verification records (in-memory for MVP)
@@ -68,6 +114,7 @@ router.post('/register', async (req, res) => {
       verificationCount: 0,
       trustedVerifications: 0,
     })
+    persistRegisteredServices()
 
     console.log(`  ✓ Service registered: ${serviceProfile.id}`)
     console.log(`  ✓ Type: ${serviceType}`)
@@ -85,12 +132,44 @@ router.post('/register', async (req, res) => {
       },
     })
 
-    console.log(`✅ Service registered successfully\n`)
+    console.log(`[OK] Service registered successfully\n`)
   } catch (err) {
-    console.error('❌ Error registering service:', err.message)
+    console.error('[ERROR] Error registering service:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to register service',
+    })
+  }
+})
+
+/**
+ * GET /api/services/registered
+ * List all registered services for student selective disclosure
+ */
+router.get('/registered', async (req, res) => {
+  try {
+    const services = Array.from(registeredServices.values())
+      .map((service) => ({
+        serviceId: service.id,
+        serviceName: service.name,
+        serviceType: service.serviceType,
+        contactEmail: service.contactEmail,
+        registeredAt: service.registeredAt,
+      }))
+      .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt))
+
+    res.json({
+      success: true,
+      data: {
+        count: services.length,
+        services,
+      },
+    })
+  } catch (err) {
+    console.error('[ERROR] Error fetching registered services:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to fetch registered services',
     })
   }
 })
@@ -144,9 +223,9 @@ router.get('/:serviceId', async (req, res) => {
       },
     })
 
-    console.log(`✅ Service profile retrieved\n`)
+    console.log(`[OK] Service profile retrieved\n`)
   } catch (err) {
-    console.error('❌ Error fetching service:', err.message)
+    console.error('[ERROR] Error fetching service:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to fetch service',
@@ -220,6 +299,7 @@ router.post('/:serviceId/verify', async (req, res) => {
     if (verificationRecord.verification.isValid) {
       service.trustedVerifications += 1
     }
+    persistRegisteredServices()
 
     const trustScore = calculateTrustScore(verificationResult)
 
@@ -249,9 +329,9 @@ router.post('/:serviceId/verify', async (req, res) => {
       },
     })
 
-    console.log(`✅ Verification completed\n`)
+    console.log(`[OK] Verification completed\n`)
   } catch (err) {
-    console.error('❌ Error verifying credentials:', err.message)
+    console.error('[ERROR] Error verifying credentials:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to verify credentials',
@@ -317,9 +397,9 @@ router.get('/:serviceId/verifications', async (req, res) => {
       },
     })
 
-    console.log(`✅ Retrieved ${verificationSummary.length} verifications\n`)
+    console.log(`[OK] Retrieved ${verificationSummary.length} verifications\n`)
   } catch (err) {
-    console.error('❌ Error fetching verifications:', err.message)
+    console.error('[ERROR] Error fetching verifications:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to fetch verifications',
@@ -378,9 +458,9 @@ router.get('/:serviceId/verify/:verificationId', async (req, res) => {
       },
     })
 
-    console.log(`✅ Verification retrieved\n`)
+    console.log(`[OK] Verification retrieved\n`)
   } catch (err) {
-    console.error('❌ Error fetching verification:', err.message)
+    console.error('[ERROR] Error fetching verification:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to fetch verification',
@@ -433,9 +513,9 @@ router.get('/student/:studentDID', async (req, res) => {
       },
     })
 
-    console.log(`✅ Retrieved ${studentVerifications.length} verifications for student\n`)
+    console.log(`[OK] Retrieved ${studentVerifications.length} verifications for student\n`)
   } catch (err) {
-    console.error('❌ Error fetching student verifications:', err.message)
+    console.error('[ERROR] Error fetching student verifications:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to fetch student verifications',

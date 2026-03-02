@@ -18,13 +18,33 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
   const [presentations, setPresentations] = useState([])
   const [loadingPresentations, setLoadingPresentations] = useState(false)
   const [showPresentations, setShowPresentations] = useState(false)
+  const [registeredServices, setRegisteredServices] = useState([])
 
   // Fetch existing presentations on mount
   useEffect(() => {
     if (walletAddress && credentials.length > 0) {
       fetchPresentations()
+      fetchRegisteredServices()
     }
   }, [walletAddress, credentials.length])
+
+  const fetchRegisteredServices = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/services/registered`
+      )
+      const data = await response.json()
+
+      if (data.success) {
+        setRegisteredServices(data.data?.services || [])
+      } else {
+        setRegisteredServices([])
+      }
+    } catch (err) {
+      console.error('Error fetching registered services:', err)
+      setRegisteredServices([])
+    }
+  }
 
   const fetchPresentations = async () => {
     try {
@@ -61,8 +81,9 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
       setLoading(true)
 
       // Get the student DID from credentials
+      const appId = import.meta.env.VITE_APP_ID || '756415000'
       const selectedCreds = credentials.filter((c) => selectedCredentials.includes(c.credentialId))
-      const studentDID = selectedCreds[0]?.studentDID || `did:algo:test:${walletAddress}`
+      const studentDID = selectedCreds[0]?.studentDID || `did:algo:app:${appId}:${walletAddress}`
 
       console.log('Creating presentation with:', {
         studentDID,
@@ -138,8 +159,8 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
 
   if (!credentials || credentials.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-4">
-        <LockKeyhole size={32} className="mx-auto text-gray-300 mb-2" />
+      <div className="text-center text-muted py-4">
+        <LockKeyhole size={32} className="mx-auto text-secondary mb-2" />
         <p className="text-sm">No credentials to share</p>
       </div>
     )
@@ -150,12 +171,12 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
       {/* Credential Selection Form */}
       <div className="space-y-3">
         <div className="card">
-          <h3 className="font-semibold mb-4 text-gray-900">Select Credentials to Share</h3>
+          <h3 className="font-semibold mb-4 text-white">Select Credentials to Share</h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {credentials.map((credential) => (
               <label
                 key={credential.credentialId}
-                className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded cursor-pointer transition border border-transparent hover:border-gray-200"
+                className="flex items-center gap-3 p-3 hover:bg-white/5/5 rounded cursor-pointer transition border border-white/10 hover:border-white/20"
               >
                 <input
                   type="checkbox"
@@ -164,10 +185,10 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
                   className="w-4 h-4 rounded"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-white truncate">
                     {credential.program || credential.credentialType}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted">
                     {credential.credentialType}
                   </p>
                 </div>
@@ -178,17 +199,22 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
 
         {/* Service Selection */}
         <div className="card">
-          <label className="block text-sm font-medium text-gray-900 mb-2">Share With</label>
+          <label className="block text-sm font-medium text-white mb-2">Share With</label>
           <select
             value={selectedService}
             onChange={(e) => setSelectedService(e.target.value)}
-            className="input-field w-full"
+            className="input-field w-full bg-[#16161F] text-white"
           >
-            <option value="general">General Service</option>
-            <option value="library">Library Access</option>
-            <option value="hostel">Hostel Management</option>
-            <option value="events">Event Registration</option>
-            <option value="employer">Potential Employer</option>
+            <option className="bg-[#16161F] text-white" value="general">General Service</option>
+            {registeredServices.map((service) => (
+              <option
+                className="bg-[#16161F] text-white"
+                key={service.serviceId}
+                value={service.serviceName}
+              >
+                {service.serviceName} ({service.serviceType})
+              </option>
+            ))}
           </select>
         </div>
 
@@ -205,45 +231,45 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
 
       {/* Proof Display */}
       {proof && showProof && (
-        <div className="card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+        <div className="card bg-gradient-to-r from-green-50 to-emerald-50 border border-emerald-500/20">
           <div className="flex items-start gap-3 mb-3">
             <span className="text-2xl">✓</span>
             <div className="flex-1">
-              <p className="font-semibold text-green-900">Proof Generated Successfully</p>
-              <p className="text-xs text-green-700 mt-1 font-mono break-all">
+              <p className="font-semibold text-emerald-300">Proof Generated Successfully</p>
+              <p className="text-xs text-emerald-400 mt-1 font-mono break-all">
                 {proof.presentationId}
               </p>
-              <p className="text-xs text-green-700 mt-1">
+              <p className="text-xs text-emerald-400 mt-1">
                 Valid until {new Date(proof.expiresAt).toLocaleString()}
               </p>
             </div>
           </div>
 
           <details className="text-sm">
-            <summary className="cursor-pointer font-medium text-green-700 hover:text-green-900 p-2 -mx-2 -my-1 hover:bg-white/50 rounded transition">
-              📋 View Proof Details
+            <summary className="cursor-pointer font-medium text-emerald-400 hover:text-emerald-300 p-2 -mx-2 -my-1 hover:bg-white/5/50 rounded transition">
+              View Proof Details
             </summary>
-            <div className="mt-3 p-3 bg-white rounded border border-green-200">
+            <div className="mt-3 p-3 bg-white/5 rounded border border-emerald-500/20">
               <div className="space-y-2 text-xs">
                 <div>
-                  <p className="text-gray-600 font-medium">Presentation ID:</p>
-                  <p className="font-mono text-gray-900 truncate">{proof.presentationId}</p>
+                  <p className="text-secondary font-medium">Presentation ID:</p>
+                  <p className="font-mono text-white truncate">{proof.presentationId}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 font-medium">Service:</p>
-                  <p className="font-semibold text-gray-900 italic">{proof.service}</p>
+                  <p className="text-secondary font-medium">Service:</p>
+                  <p className="font-semibold text-white italic">{proof.service}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 font-medium">Shared Credentials:</p>
-                  <p className="font-mono text-gray-900">{proof.credentialCount}</p>
+                  <p className="text-secondary font-medium">Shared Credentials:</p>
+                  <p className="font-mono text-white">{proof.credentialCount}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 font-medium">Created At:</p>
-                  <p className="font-mono text-gray-900">{new Date(proof.createdAt).toLocaleString()}</p>
+                  <p className="text-secondary font-medium">Created At:</p>
+                  <p className="font-mono text-white">{new Date(proof.createdAt).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 font-medium">Expires At:</p>
-                  <p className="font-mono text-gray-900">{new Date(proof.expiresAt).toLocaleString()}</p>
+                  <p className="text-secondary font-medium">Expires At:</p>
+                  <p className="font-mono text-white">{new Date(proof.expiresAt).toLocaleString()}</p>
                 </div>
               </div>
               {proof.presentation && (
@@ -256,7 +282,7 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
 
           <button
             onClick={() => setShowProof(false)}
-            className="mt-3 text-sm font-medium text-green-600 hover:text-green-700"
+            className="mt-3 text-sm font-medium text-green-600 hover:text-emerald-400"
           >
             Dismiss
           </button>
@@ -267,11 +293,11 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
       {presentations.length > 0 && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Proof History</h3>
+            <h3 className="font-semibold text-white">Proof History</h3>
             <button
               onClick={fetchPresentations}
               disabled={loadingPresentations}
-              className="p-2 hover:bg-gray-100 rounded transition"
+              className="p-2 hover:bg-white/5 rounded transition text-secondary hover:text-white"
               title="Refresh"
             >
               <RefreshCw size={16} className={loadingPresentations ? 'animate-spin' : ''} />
@@ -280,16 +306,16 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
 
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {presentations.map((pres) => (
-              <div key={pres.presentationId} className="p-3 bg-gray-50 rounded border border-gray-200">
+              <div key={pres.presentationId} className="p-3 bg-white/5 rounded border border-white/10">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-white">
                       {pres.service.charAt(0).toUpperCase() + pres.service.slice(1)}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1 font-mono truncate">
+                    <p className="text-xs text-muted mt-1 font-mono truncate">
                       {pres.presentationId}
                     </p>
-                    <div className="flex gap-4 mt-2 text-xs text-gray-600">
+                    <div className="flex gap-4 mt-2 text-xs text-secondary">
                       <span>{pres.credentialCount} credential{pres.credentialCount !== 1 ? 's' : ''}</span>
                       <span>{new Date(pres.createdAt).toLocaleDateString()}</span>
                       {pres.isExpired && <span className="text-red-600 font-medium">Expired</span>}
@@ -299,7 +325,7 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
                   {!pres.isRevoked && !pres.isExpired && (
                     <button
                       onClick={() => revokePresentation(pres.presentationId)}
-                      className="p-2 hover:bg-red-100 text-red-600 rounded transition ml-2"
+                      className="p-2 hover:bg-red-500/10 text-red-400 rounded transition ml-2"
                       title="Revoke proof"
                     >
                       <Trash2 size={16} />
@@ -313,7 +339,7 @@ export const SelectiveDisclosure = ({ credentials = [], onProofGenerated }) => {
       )}
 
       {/* Privacy Notice */}
-      <div className="text-xs text-gray-500 p-3 bg-gray-50 rounded border border-gray-200 flex gap-2">
+      <div className="text-xs text-secondary p-3 bg-white/5 rounded border border-white/10 flex gap-2">
         <LockKeyhole size={14} className="flex-shrink-0 mt-0.5" />
         <p>
           Only the credentials you select will be shared. You can revoke access anytime by revoking the proof.

@@ -7,6 +7,40 @@ import { sha256, generateUUID } from '../utils/crypto.js'
 
 const router = express.Router()
 
+const getAlgodClient = () => {
+  const algodToken = process.env.ALGORAND_ALGOD_TOKEN || ''
+  const algodServer = process.env.ALGORAND_ALGOD_SERVER || 'https://testnet-api.algonode.cloud'
+  const algodPort = process.env.ALGORAND_ALGOD_PORT || '443'
+  return new algosdk.Algodv2(algodToken, algodServer, algodPort)
+}
+
+const getOnChainIpfsHash = async (walletAddress) => {
+  try {
+    const appId = Number(process.env.ALGORAND_APP_ID || '756415000')
+    const keyBytes = algosdk.decodeAddress(walletAddress).publicKey
+    const keyBase64 = Buffer.from(keyBytes).toString('base64')
+
+    const appInfo = await getAlgodClient().getApplicationByID(appId).do()
+    const globalState = appInfo?.params?.['global-state'] || []
+    const stateEntry = globalState.find((entry) => entry.key === keyBase64)
+
+    if (!stateEntry || stateEntry.value.type !== 1 || !stateEntry.value.bytes) {
+      return null
+    }
+
+    return Buffer.from(stateEntry.value.bytes, 'base64').toString('utf-8')
+  } catch (error) {
+    console.warn('⚠️ Failed to fetch on-chain DID hash:', error.message)
+    return null
+  }
+}
+
+/**
+ * In-memory DID storage for MVP
+ * Maps walletAddress -> { did, ipfsHash, didDocument, transactionId, registeredAt }
+ */
+const registeredDIDs = new Map()
+
 /**
  * POST /api/did/create
  * Create a new DID for a student
@@ -52,10 +86,12 @@ router.post('/create', async (req, res) => {
     const txnData = await createDID(walletAddress, ipfsHash)
 
     // Step 4: Return response
+    const network = process.env.ALGORAND_NETWORK || 'testnet'
     res.json({
       success: true,
       data: {
-        did: `did:algo:testnet:${walletAddress}`,
+        did: didDocument.id,
+        network,
         displayName,
         ipfsHash,
         didDocument,
@@ -70,9 +106,9 @@ router.post('/create', async (req, res) => {
       },
     })
 
-    console.log(`✅ DID creation prepared for ${walletAddress}\n`)
+    console.log(`[OK] DID creation prepared for ${walletAddress}\n`)
   } catch (err) {
-    console.error('❌ Error creating DID:', err.message)
+    console.error('[ERROR] Error creating DID:', err.message)
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to create DID',
@@ -87,7 +123,7 @@ router.post('/create', async (req, res) => {
  */
 router.post('/register', async (req, res) => {
   try {
-    const { walletAddress, signedTxn } = req.body
+    const { walletAddress, signedTxn, ipfsHash, didDocument } = req.body
 
     // Validate input
     if (!walletAddress || !signedTxn) {
@@ -124,10 +160,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Step 2: Initialize Algod client
-    const algodToken = process.env.ALGORAND_ALGOD_TOKEN || ''
-    const algodServer = process.env.ALGORAND_ALGOD_SERVER || 'https://testnet-api.algonode.cloud'
-    const algodPort = process.env.ALGORAND_ALGOD_PORT || '443'
-    const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort)
+    const algodClient = getAlgodClient()
 
     // Step 3: Submit transaction to blockchain
     console.log('  ✓ Submitting to TestNet...')
@@ -175,13 +208,24 @@ router.post('/register', async (req, res) => {
       // Still return success as transaction was submitted
     }
 
-    // Step 5: Return response with explorer link
-    const explorerUrl = `https://testnet.algoexplorer.io/tx/${txId}`
+    // Step 5: Store DID registration in memory for resolution
+    const network = process.env.ALGORAND_NETWORK || 'testnet'
+    const did = `did:algo:${network}:${walletAddress}`
+    registeredDIDs.set(walletAddress, {
+      did,
+      ipfsHash: ipfsHash || null,
+      didDocument: didDocument || null,
+      transactionId: txId,
+      registeredAt: new Date().toISOString(),
+    })
+
+    // Step 6: Return response with explorer link
+    const explorerUrl = `https://lora.algokit.io/testnet/transaction/${txId}`
 
     res.json({
       success: true,
       data: {
-        did: `did:algo:testnet:${walletAddress}`,
+        did,
         walletAddress,
         transactionId: txId,
         confirmedRound: confirmedRound > 0 ? confirmedRound : null,
@@ -191,7 +235,7 @@ router.post('/register', async (req, res) => {
       },
     })
 
-    console.log(`✅ DID registered for ${walletAddress}`)
+    console.log(`[OK] DID registered for ${walletAddress}`)
     console.log(`   TX ID: ${txId}`)
     console.log(`   Explorer: ${explorerUrl}\n`)
   } catch (err) {
@@ -205,13 +249,14 @@ router.post('/register', async (req, res) => {
 
 /**
  * GET /api/did/:walletAddress
- * Resolve a DID document from IPFS
+ * Resolve a DID document
  * Feature 4C: Fetch and serve DID documents
  */
 router.get('/:walletAddress', async (req, res) => {
   try {
     const { walletAddress } = req.params
-    const did = `did:algo:testnet:${walletAddress}`
+    const network = process.env.ALGORAND_NETWORK || 'testnet'
+    const did = `did:algo:${network}:${walletAddress}`
 
     // Validate wallet address format
     if (walletAddress.length !== 58) {
@@ -223,52 +268,59 @@ router.get('/:walletAddress', async (req, res) => {
 
     console.log(`\n🔍 Resolving DID: ${did}`)
 
-    // Step 1: Resolve DID structure
-    console.log('  ✓ Parsing DID...')
-    const resolved = resolveDID(did)
+    // Check in-memory record first
+    let didRecord = registeredDIDs.get(walletAddress)
 
-    if (!resolved || !resolved.address) {
-      return res.status(400).json({
+    // Fallback to on-chain global state
+    if (!didRecord) {
+      const onChainIpfsHash = await getOnChainIpfsHash(walletAddress)
+
+      if (onChainIpfsHash) {
+        didRecord = {
+          did,
+          ipfsHash: onChainIpfsHash,
+          didDocument: null,
+          transactionId: null,
+          registeredAt: null,
+        }
+      }
+    }
+
+    if (!didRecord) {
+      return res.status(404).json({
         success: false,
-        error: 'Invalid DID format',
+        error: 'DID not registered',
+        message: 'This wallet address has not registered a DID yet',
       })
     }
 
-    // Step 2: Fetch stored DID hash from smart contract state (if applicable)
-    // For now, we'll try to construct it from standard naming convention
-    // In production, would query smart contract storage for registered DIDs
-    console.log('  ✓ Looking up DID document...')
+    // Fetch DID document from IPFS if we have the hash
+    let didDocument = didRecord.didDocument
+    
+    if (!didDocument && didRecord.ipfsHash) {
+      try {
+        console.log(`  ✓ Fetching from IPFS: ${didRecord.ipfsHash}`)
+        didDocument = await fetchFromIPFS(didRecord.ipfsHash)
+      } catch (ipfsErr) {
+        console.warn('  ⚠️ IPFS fetch failed, using cached document')
+      }
+    }
 
-    // Try to fetch from a standard location or from contract state
-    // This would normally come from querying the smart contract's state
-    const didDocFileName = `did-${walletAddress}.json`
-
-    // Step 3: Search for stored IPFS hash
-    // In production, this would query the smart contract's global state
-    // For now, return template with instructions
     const response = {
       success: true,
       data: {
-        did,
-        resolved,
-        status: 'DID resolved',
-        message: 'To fetch the DID document, the IPFS hash must be retrieved from the smart contract state',
-        instructions: {
-          step1: 'Query smart contract app state for registered DIDs',
-          step2: 'Extract IPFS hash from contract storage',
-          step3: 'Fetch document from IPFS using fetchFromIPFS(ipfsHash)',
-        },
-        expectedLocation: `/ipfs/${didDocFileName}`,
+        did: didRecord.did,
+        didDocument: didDocument || null,
+        ipfsHash: didRecord.ipfsHash,
+        transactionId: didRecord.transactionId,
+        explorerUrl: `https://testnet.algoexplorer.io/tx/${didRecord.transactionId}`,
+        registeredAt: didRecord.registeredAt,
+        status: 'registered',
       },
     }
 
-    // Step 4: If we had the IPFS hash, we could fetch it
-    // Example (would need hash from contract state):
-    // const ipfsHash = 'QmXxx...' // from contract storage
-    // const document = await fetchFromIPFS(ipfsHash)
-
     res.json(response)
-    console.log(`✅ DID resolved for ${walletAddress}\n`)
+    console.log(`[OK] DID resolved for ${walletAddress}\n`)
   } catch (err) {
     console.error('❌ Error resolving DID:', err.message)
     res.status(500).json({

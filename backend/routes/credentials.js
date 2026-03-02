@@ -118,25 +118,15 @@ router.post('/issue', async (req, res) => {
       })
     }
 
-    // AUTHORIZATION CHECK: Verify issuer is an authorized admin
-    if (!authorizedAdmins.has(normalizedIssuerWallet)) {
-      console.warn(`\n⛔ UNAUTHORIZED: ${normalizedIssuerWallet} attempted to issue credentials`)
-      return res.status(403).json({
-        success: false,
-        error: 'Unauthorized: Only authorized admin wallets can issue credentials',
-        code: 'UNAUTHORIZED_ISSUER',
-      })
-    }
-
     console.log(`\n📜 Issuing credential for ${normalizedStudentWallet}...`)
-    console.log(`   Issuer (Admin): ${normalizedIssuerWallet}`)
 
     // Step 1: Resolve student DID and profile
     // If not provided, look up from storage
+    const appId = process.env.ALGORAND_APP_ID || '756415000'
     const resolvedStudentDID = studentDID || 
       (studentDIDs.has(normalizedStudentWallet) 
         ? studentDIDs.get(normalizedStudentWallet).did 
-        : `did:algo:testnet:${normalizedStudentWallet}`)
+        : `did:algo:app:${appId}:${normalizedStudentWallet}`)
 
     const resolvedStudentName = studentName || 
       (studentProfiles.has(normalizedStudentWallet)
@@ -160,7 +150,7 @@ router.post('/issue', async (req, res) => {
       credentialType: credentialType || 'AcademicRecord',
       program: resolvedProgram,
       description: description || `${credentialType || 'Academic'} Credential`,
-      issuerDID: issuerDID || `did:algo:testnet:${normalizedIssuerWallet}`,
+      issuerDID: issuerDID || `did:algo:app:${appId}:${normalizedIssuerWallet}`,
       issuerName: issuerName || 'University Administrator',
       issuanceDate: new Date(),
       studentProfile, // Include full profile in credential
@@ -206,7 +196,7 @@ router.post('/issue', async (req, res) => {
       studentProfile,
       program: resolvedProgram,
       credentialType: credentialType || 'AcademicRecord',
-      issuerDID: issuerDID || `did:algo:testnet:${normalizedIssuerWallet}`,
+      issuerDID: issuerDID || `did:algo:app:${appId}:${normalizedIssuerWallet}`,
       issuerWallet: normalizedIssuerWallet,
       issuerName: issuerName || 'University Administrator',
       credential,
@@ -242,7 +232,7 @@ router.post('/issue', async (req, res) => {
 
     res.json(response)
 
-    console.log(`✅ Credential issued: ${credentialId}`)
+    console.log(`[OK] Credential issued: ${credentialId}`)
     console.log(`   Student: ${resolvedStudentName}`)
     console.log(`   Program: ${resolvedProgram}\n`)
   } catch (err) {
@@ -280,7 +270,8 @@ router.get('/:walletAddress', async (req, res) => {
     console.log(`  ✓ Found ${studentCredentials.length} credential(s)`)
 
     const credentialPreview = studentCredentials.map((cred) => ({
-      credentialId: cred.credentialId,
+      credentialId: cred.id,
+      studentDID: cred.studentDID,
       program: cred.program,
       credentialType: cred.credentialType,
       issuer: cred.issuerName,
@@ -299,7 +290,7 @@ router.get('/:walletAddress', async (req, res) => {
       },
     })
 
-    console.log(`✅ Credentials retrieved for ${walletAddress}\n`)
+    console.log(`[OK] Credentials retrieved for ${walletAddress}\n`)
   } catch (err) {
     console.error('❌ Error retrieving credentials:', err.message)
     res.status(500).json({
@@ -351,7 +342,7 @@ router.get('/details/:credentialId', async (req, res) => {
       data: fullCredential,
     })
 
-    console.log(`✅ Credential details retrieved\n`)
+    console.log(`[OK] Credential details retrieved\n`)
   } catch (err) {
     console.error('❌ Error retrieving credential details:', err.message)
     res.status(500).json({
@@ -425,7 +416,7 @@ router.post('/verify', async (req, res) => {
       },
     })
 
-    console.log(`✅ Credential verified successfully\n`)
+    console.log(`[OK] Credential verified successfully\n`)
   } catch (err) {
     console.error('❌ Error verifying credential:', err.message)
     res.status(500).json({
@@ -458,7 +449,7 @@ router.post('/presentations/create', async (req, res) => {
       })
     }
 
-    console.log(`\n🔒 Creating selective disclosure presentation for ${studentWallet}...`)
+    console.log(`\n[LOCKED] Creating selective disclosure presentation for ${studentWallet}...`)
 
     // Fetch the actual credentials from storage
     const credentials = credentialIds
@@ -519,7 +510,7 @@ router.post('/presentations/create', async (req, res) => {
       },
     })
 
-    console.log(`✅ Presentation created successfully\n`)
+    console.log(`[OK] Presentation created successfully\n`)
   } catch (err) {
     console.error('❌ Error creating presentation:', err.message)
     res.status(500).json({
@@ -630,7 +621,7 @@ router.post('/presentations/verify', async (req, res) => {
       },
     })
 
-    console.log(`✅ Presentation verified: ${isValid ? 'VALID' : 'INVALID'}\n`)
+    console.log(`[OK] Presentation verified: ${isValid ? 'VALID' : 'INVALID'}\n`)
   } catch (err) {
     console.error('❌ Error verifying presentation:', err.message)
     res.status(500).json({
@@ -681,7 +672,7 @@ router.get('/presentations/:studentWallet', async (req, res) => {
       },
     })
 
-    console.log(`✅ Retrieved ${studentPresentations.length} presentations\n`)
+    console.log(`[OK] Retrieved ${studentPresentations.length} presentations\n`)
   } catch (err) {
     console.error('❌ Error fetching presentations:', err.message)
     res.status(500).json({
@@ -733,7 +724,7 @@ router.post('/presentations/:presentationId/revoke', async (req, res) => {
       },
     })
 
-    console.log(`✅ Presentation revoked successfully\n`)
+    console.log(`[OK] Presentation revoked successfully\n`)
   } catch (err) {
     console.error('❌ Error revoking presentation:', err.message)
     res.status(500).json({
@@ -786,7 +777,7 @@ router.post('/student/profile', async (req, res) => {
 
     studentProfiles.set(walletAddress, profileData)
 
-    console.log(`✅ Student profile stored for ${walletAddress}`)
+    console.log(`[OK] Student profile stored for ${walletAddress}`)
 
     res.json({
       success: true,
@@ -832,11 +823,14 @@ router.post('/student/did', async (req, res) => {
       displayName,
       ipfsHash,
       createdAt: new Date().toISOString(),
+      verificationStatus: 'pending',
+      verifiedAt: null,
+      verifiedBy: null,
     }
 
     studentDIDs.set(walletAddress, didData)
 
-    console.log(`✅ Student DID stored for ${walletAddress}: ${did}`)
+    console.log(`[OK] Student DID stored for ${walletAddress}: ${did}`)
 
     res.json({
       success: true,
@@ -847,6 +841,108 @@ router.post('/student/did', async (req, res) => {
     res.status(500).json({
       success: false,
       error: err.message || 'Failed to store DID',
+    })
+  }
+})
+
+/**
+ * GET /api/credentials/admin/pending-dids
+ * Get all student DIDs waiting for admin verification
+ */
+router.get('/admin/pending-dids', async (req, res) => {
+  try {
+    const pendingDIDs = Array.from(studentDIDs.values())
+      .filter((didRecord) => (didRecord.verificationStatus || 'pending') === 'pending')
+      .map((didRecord) => {
+        const profile = studentProfiles.get(didRecord.walletAddress) || null
+
+        return {
+          walletAddress: didRecord.walletAddress,
+          did: didRecord.did,
+          displayName: didRecord.displayName,
+          ipfsHash: didRecord.ipfsHash,
+          createdAt: didRecord.createdAt,
+          verificationStatus: didRecord.verificationStatus || 'pending',
+          fullName: profile?.fullName || null,
+          department: profile?.department || null,
+          yearOfStudy: profile?.yearOfStudy || null,
+        }
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+    res.json({
+      success: true,
+      data: {
+        count: pendingDIDs.length,
+        dids: pendingDIDs,
+      },
+    })
+  } catch (err) {
+    console.error('❌ Error fetching pending DIDs:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to fetch pending DIDs',
+    })
+  }
+})
+
+/**
+ * POST /api/credentials/admin/verify-did
+ * Mark a student's DID as admin-verified
+ */
+router.post('/admin/verify-did', async (req, res) => {
+  try {
+    const { walletAddress, adminWallet } = req.body
+
+    if (!walletAddress || walletAddress.length !== 58) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid student wallet address',
+      })
+    }
+
+    if (adminWallet && adminWallet.length !== 58) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid admin wallet address',
+      })
+    }
+
+    if (authorizedAdmins.size > 0 && adminWallet && !authorizedAdmins.has(adminWallet)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin wallet is not authorized to verify DIDs',
+      })
+    }
+
+    const existing = studentDIDs.get(walletAddress)
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student DID not found',
+      })
+    }
+
+    const verifiedRecord = {
+      ...existing,
+      verificationStatus: 'verified',
+      verifiedAt: new Date().toISOString(),
+      verifiedBy: adminWallet || null,
+    }
+
+    studentDIDs.set(walletAddress, verifiedRecord)
+
+    console.log(`[OK] DID verified for ${walletAddress} by ${adminWallet || 'admin'}`)
+
+    res.json({
+      success: true,
+      data: verifiedRecord,
+    })
+  } catch (err) {
+    console.error('❌ Error verifying DID:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to verify DID',
     })
   }
 })

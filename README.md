@@ -288,14 +288,14 @@ Expected: `VITE v5.0.x ready in XXX ms` and accessible at http://localhost:5173
 
 | Variable | Backend | Frontend | Description |
 |----------|---------|----------|-------------|
-| PORT | ✅ | ❌ | Backend server port (default: 3001) |
-| VITE_BACKEND_URL | ❌ | ✅ | Backend API base URL |
-| VITE_ALGOD_URL | ✅ | ✅ | Algorand node RPC endpoint |
-| VITE_INDEXER_URL | ✅ | ✅ | Algorand indexer endpoint |
-| VITE_APP_ID | ❌ | ✅ | Deployed contract App ID |
-| PINATA_API_KEY | ✅ | ❌ | Pinata IPFS API key |
-| PINATA_SECRET_KEY | ✅ | ❌ | Pinata IPFS secret key |
-| UNIVERSITY_MNEMONIC | ✅ | ❌ | 25-word mnemonic for university wallet |
+| PORT | [OK] | [NO] | Backend server port (default: 3001) |
+| VITE_BACKEND_URL | [NO] | [OK] | Backend API base URL |
+| VITE_ALGOD_URL | [OK] | [OK] | Algorand node RPC endpoint |
+| VITE_INDEXER_URL | [OK] | [OK] | Algorand indexer endpoint |
+| VITE_APP_ID | [NO] | [OK] | Deployed contract App ID |
+| PINATA_API_KEY | [OK] | [NO] | Pinata IPFS API key |
+| PINATA_SECRET_KEY | [OK] | [NO] | Pinata IPFS secret key |
+| UNIVERSITY_MNEMONIC | [OK] | [NO] | 25-word mnemonic for university wallet |
 
 ## Smart Contract Deployment
 

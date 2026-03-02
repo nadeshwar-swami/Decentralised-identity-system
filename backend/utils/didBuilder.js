@@ -13,7 +13,8 @@ import { generateUUID } from '../utils/crypto.js'
  * @returns {Object} W3C compliant DID document
  */
 export const buildDIDDocument = (walletAddress, displayName) => {
-  const did = `did:algo:testnet:${walletAddress}`
+  const network = process.env.ALGORAND_NETWORK || 'testnet'
+  const did = `did:algo:${network}:${walletAddress}`
   const now = new Date().toISOString()
 
   return {
@@ -92,7 +93,7 @@ export const buildDIDDocument = (walletAddress, displayName) => {
  */
 export const validateDIDDocument = (document) => {
   if (!document.id || !document.id.startsWith('did:algo:')) {
-    throw new Error('Invalid DID format')
+    throw new Error('Invalid DID format - must start with did:algo:')
   }
 
   if (!document['@context']) {
@@ -116,16 +117,54 @@ export const validateDIDDocument = (document) => {
  * @returns {Object} Partial DID document metadata
  */
 export const resolveDID = (did) => {
-  if (!did.startsWith('did:algo:testnet:')) {
-    throw new Error('Invalid Algorand DID format')
+  if (!did.startsWith('did:algo:')) {
+    throw new Error('Invalid Algorand DID format - expected did:algo:*')
   }
 
-  const walletAddress = did.replace('did:algo:testnet:', '')
+  const parts = did.split(':')
 
-  return {
-    id: did,
-    walletAddress,
-    network: 'testnet',
-    method: 'algo',
+  // Legacy format: did:algo:app:APP_ID:WALLET_ADDRESS
+  if (parts.length === 5 && parts[2] === 'app') {
+    const appId = parts[3]
+    const walletAddress = parts[4]
+
+    return {
+      id: did,
+      walletAddress,
+      appId,
+      network: process.env.ALGORAND_NETWORK || 'testnet',
+      method: 'algo',
+    }
   }
+
+  // Preferred format: did:algo:NETWORK:WALLET_ADDRESS
+  if (parts.length === 4) {
+    const network = parts[2]
+    const walletAddress = parts[3]
+
+    return {
+      id: did,
+      walletAddress,
+      appId: process.env.ALGORAND_APP_ID || '756415000',
+      network,
+      method: 'algo',
+    }
+  }
+
+  // ARC-52 style with app and pubKey hex: did:algo:NETWORK:app:APP_ID:PUBKEY_HEX
+  if (parts.length === 6 && parts[3] === 'app') {
+    const network = parts[2]
+    const appId = parts[4]
+    const pubKeyHex = parts[5]
+
+    return {
+      id: did,
+      walletAddress: pubKeyHex,
+      appId,
+      network,
+      method: 'algo',
+    }
+  }
+
+  throw new Error('Invalid DID structure')
 }

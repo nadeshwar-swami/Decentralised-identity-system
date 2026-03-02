@@ -1,89 +1,78 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useRoleContext } from '../context/RoleContext'
 import { useWalletContext } from '../context/WalletContext'
-import { RoleSwitcher } from './RoleSwitcher'
 import { WalletConnect } from './WalletConnect'
-import { Home, User, Shield, Briefcase } from 'lucide-react'
+import { Logo } from './Logo'
+import { User, Shield, Briefcase, Search } from 'lucide-react'
 
 /**
  * Navbar component - main navigation with wallet connect
- * Full navbar on landing page, minimal navbar on dashboard pages
+ * Shows role switcher, wallet status, and connection controls
  */
 export const Navbar = ({ onDisconnect }) => {
   const { walletAddress, isConnected } = useWalletContext()
-  const { currentRole } = useRoleContext()
   const location = useLocation()
 
-  // Show full navbar only on landing page
-  const isLandingPage = location.pathname === '/'
-
   const navLinks = {
-    student: [
-      { path: '/student', label: 'Dashboard', icon: User },
-    ],
-    admin: [
-      { path: '/admin', label: 'Issue Credentials', icon: Shield },
-    ],
-    service: [
-      { path: '/service', label: 'Verify Credentials', icon: Briefcase },
-    ],
+    student: [{ path: '/student', label: 'Student', icon: User }],
+    admin: [{ path: '/admin', label: 'Admin', icon: Shield }],
+    service: [{ path: '/service', label: 'Service', icon: Briefcase }],
   }
 
-  const currentNavLinks = navLinks[currentRole] || []
   const isActive = (path) => location.pathname === path
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo - Always visible */}
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <span className="text-2xl">🔒</span>
-            <h1 className="text-xl font-bold text-gray-900">Campus DID</h1>
-          </Link>
-
-          {/* Full Navigation - Only on landing page */}
-          {isLandingPage && (
-            <>
-              {/* Role-based navigation links */}
-              <div className="hidden md:flex items-center gap-2">
-                {currentNavLinks.map(({ path, label, icon: Icon }) => (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                      isActive(path)
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    <Icon size={18} />
-                    {label}
-                  </Link>
-                ))}
+    <nav className="sticky top-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-2xl">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10">
+        <div className="h-20 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
+              <Logo size={48} className="text-indigo-400" />
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-bold text-white leading-tight font-display">Campus DID</h1>
+                <p className="text-xs text-cyan-400">Algorand TestNet</p>
               </div>
+            </Link>
 
-              {/* Navigation Controls on Landing */}
-              <div className="flex items-center gap-6">
-                <RoleSwitcher />
-                <WalletConnect
-                  walletAddress={walletAddress}
-                  isConnected={isConnected}
-                  onDisconnect={onDisconnect}
-                />
-              </div>
-            </>
-          )}
+            <div className="hidden lg:flex items-center gap-2">
+              {/* Public link - always visible */}
+              <Link
+                to="/resolve"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  isActive('/resolve')
+                    ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
+                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <Search size={16} />
+                Resolve DID
+              </Link>
 
-          {/* Minimal Navigation - On dashboard pages */}
-          {!isLandingPage && (
+              {/* Role-specific links */}
+              {Object.values(navLinks).flat().map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    isActive(path)
+                      ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
+                      : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center">
             <WalletConnect
               walletAddress={walletAddress}
               isConnected={isConnected}
               onDisconnect={onDisconnect}
             />
-          )}
+          </div>
         </div>
       </div>
     </nav>

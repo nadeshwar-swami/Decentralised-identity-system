@@ -22,22 +22,22 @@ export const RoleSwitcher = () => {
   }
 
   return (
-    <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+    <div className="hidden md:flex gap-1 bg-white/5 rounded-lg p-1 border border-white/10 backdrop-blur">
       {['student', 'admin', 'service'].map((role) => {
         const Icon = roleIcons[role]
         return (
           <button
             key={role}
             onClick={() => handleRoleSwitch(role)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold transition-all ${
               currentRole === role
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200'
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-slate-300 border border-transparent'
             }`}
             title={`Switch to ${role} role`}
           >
-            <Icon size={16} />
-            <span className="hidden sm:inline">{role.charAt(0).toUpperCase() + role.slice(1)}</span>
+            <Icon size={15} />
+            <span className="hidden lg:inline">{role.charAt(0).toUpperCase() + role.slice(1)}</span>
           </button>
         )
       })}

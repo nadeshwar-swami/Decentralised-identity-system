@@ -71,7 +71,7 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
 
       // Optionally send to backend
       try {
-        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/student/profile`, {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/credentials/student/profile`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -96,25 +96,25 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-white mb-2">
           {isLocked ? '✓ Your Profile' : 'Complete Your Profile'}
         </h2>
         {isLocked ? (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-700 text-sm font-medium">
-              🔒 Your profile is locked. Once you receive your first credential, your profile information cannot be edited to maintain credential integrity and prevent fraud.
+          <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+            <p className="text-indigo-300 text-sm font-medium">
+              [LOCKED] Your profile is locked. Once you receive your first credential, your profile information cannot be edited to maintain credential integrity and prevent fraud.
             </p>
           </div>
         ) : (
-          <p className="text-gray-600 text-sm">
+          <p className="text-secondary text-sm">
             This information will be used to issue your academic credentials and verify your identity.
           </p>
         )}
       </div>
 
       {/* Personal Information Section */}
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      <div className="border-b border-white/10 pb-4">
+        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
           <User size={18} />
           Personal Information
         </h3>
@@ -122,7 +122,7 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
         <div className="grid md:grid-cols-2 gap-4">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Full Name *
             </label>
             <input
@@ -132,18 +132,18 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               onChange={handleChange}
               placeholder="e.g., John Doe"
               disabled={isLocked}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                isLocked ? 'bg-white/5 text-muted cursor-not-allowed border-white/10' : 'bg-white/5 border-white/10 text-white'
               } ${
-                errors.fullName ? 'border-red-500' : 'border-gray-300'
+                errors.fullName ? 'border-red-500/50' : ''
               }`}
             />
-            {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+            {errors.fullName && <p className="text-red-400 text-xs mt-1">{errors.fullName}</p>}
           </div>
 
           {/* Student ID */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Student ID Number *
             </label>
             <input
@@ -154,17 +154,17 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               placeholder="e.g., STU-2024-001"
               disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                isLocked ? 'bg-white/5 text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.studentId ? 'border-red-500' : 'border-gray-300'
+                errors.studentId ? 'border-red-500' : 'border-white/10'
               }`}
             />
-            {errors.studentId && <p className="text-red-500 text-xs mt-1">{errors.studentId}</p>}
+            {errors.studentId && <p className="text-red-400 text-xs mt-1">{errors.studentId}</p>}
           </div>
 
           {/* Date of Birth */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Date of Birth *
             </label>
             <input
@@ -174,19 +174,19 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               onChange={handleChange}
               disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                isLocked ? 'bg-white/5 text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                errors.dateOfBirth ? 'border-red-500' : 'border-white/10'
               }`}
             />
             {errors.dateOfBirth && (
-              <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.dateOfBirth}</p>
             )}
           </div>
 
           {/* Admission Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Admission Number *
             </label>
             <input
@@ -197,21 +197,21 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               placeholder="e.g., ADM-2024-001"
               disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                isLocked ? 'bg-white/5 text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.admissionNumber ? 'border-red-500' : 'border-gray-300'
+                errors.admissionNumber ? 'border-red-500' : 'border-white/10'
               }`}
             />
             {errors.admissionNumber && (
-              <p className="text-red-500 text-xs mt-1">{errors.admissionNumber}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.admissionNumber}</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Contact Information Section */}
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      <div className="border-b border-white/10 pb-4">
+        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
           <Mail size={18} />
           Contact Information
         </h3>
@@ -219,7 +219,7 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
         <div className="grid md:grid-cols-2 gap-4">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Official University Email *
             </label>
             <input
@@ -230,17 +230,17 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               placeholder="e.g., john.doe@university.edu"
               disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                isLocked ? 'bg-white/5 text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+                errors.email ? 'border-red-500' : 'border-white/10'
               }`}
             />
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
           </div>
 
           {/* Mobile Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Mobile Number *
             </label>
             <input
@@ -251,21 +251,21 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               placeholder="e.g., +1-555-0100"
               disabled={isLocked}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                isLocked ? 'bg-white/5 text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.mobileNumber ? 'border-red-500' : 'border-gray-300'
+                errors.mobileNumber ? 'border-red-500' : 'border-white/10'
               }`}
             />
             {errors.mobileNumber && (
-              <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.mobileNumber}</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Academic Information Section */}
-      <div className="pb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      <div className="border-b border-white/10 pb-4">
+        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
           <Book size={18} />
           Academic Information
         </h3>
@@ -273,7 +273,7 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
         <div className="grid md:grid-cols-2 gap-4">
           {/* Department */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Department *
             </label>
             <select
@@ -281,30 +281,30 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               value={formData.department}
               onChange={handleChange}
               disabled={isLocked}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/5 border-white/10 text-white ${
+                isLocked ? 'text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.department ? 'border-red-500' : 'border-gray-300'
+                errors.department ? 'border-red-500' : ''
               }`}
             >
-              <option value="">Select Department</option>
-              <option value="Computer Science">Computer Science</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Business">Business</option>
-              <option value="Law">Law</option>
-              <option value="Medicine">Medicine</option>
-              <option value="Arts">Arts</option>
-              <option value="Science">Science</option>
-              <option value="Other">Other</option>
+              <option value="" className="bg-[#16161F] text-white">Select Department</option>
+              <option value="Computer Science" className="bg-[#16161F] text-white">Computer Science</option>
+              <option value="Engineering" className="bg-[#16161F] text-white">Engineering</option>
+              <option value="Business" className="bg-[#16161F] text-white">Business</option>
+              <option value="Law" className="bg-[#16161F] text-white">Law</option>
+              <option value="Medicine" className="bg-[#16161F] text-white">Medicine</option>
+              <option value="Arts" className="bg-[#16161F] text-white">Arts</option>
+              <option value="Science" className="bg-[#16161F] text-white">Science</option>
+              <option value="Other" className="bg-[#16161F] text-white">Other</option>
             </select>
             {errors.department && (
-              <p className="text-red-500 text-xs mt-1">{errors.department}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.department}</p>
             )}
           </div>
 
           {/* Year of Study */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white mb-1">
               Year of Study *
             </label>
             <select
@@ -312,21 +312,21 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
               value={formData.yearOfStudy}
               onChange={handleChange}
               disabled={isLocked}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/5 border-white/10 text-white ${
+                isLocked ? 'text-gray-500 cursor-not-allowed' : ''
               } ${
-                errors.yearOfStudy ? 'border-red-500' : 'border-gray-300'
+                errors.yearOfStudy ? 'border-red-500' : ''
               }`}
             >
-              <option value="">Select Year</option>
-              <option value="1st Year">1st Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="3rd Year">3rd Year</option>
-              <option value="4th Year">4th Year</option>
-              <option value="Graduated">Graduated</option>
+              <option value="" className="bg-[#16161F] text-white">Select Year</option>
+              <option value="1st Year" className="bg-[#16161F] text-white">1st Year</option>
+              <option value="2nd Year" className="bg-[#16161F] text-white">2nd Year</option>
+              <option value="3rd Year" className="bg-[#16161F] text-white">3rd Year</option>
+              <option value="4th Year" className="bg-[#16161F] text-white">4th Year</option>
+              <option value="Graduated" className="bg-[#16161F] text-white">Graduated</option>
             </select>
             {errors.yearOfStudy && (
-              <p className="text-red-500 text-xs mt-1">{errors.yearOfStudy}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.yearOfStudy}</p>
             )}
           </div>
         </div>
@@ -358,7 +358,7 @@ export const StudentProfileForm = ({ walletAddress, onSave, initialData = null, 
       )}
 
       {/* Privacy Note */}
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-muted text-center">
         Your information is protected and will only be used for credential issuance and identity verification.
       </p>
     </form>

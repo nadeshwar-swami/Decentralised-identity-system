@@ -1,16 +1,15 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { WalletProvider, useWalletContext } from './context/WalletContext'
-import { RoleProvider, useRoleContext } from './context/RoleContext'
+import { RoleProvider } from './context/RoleContext'
 import { Navbar } from './components/Navbar'
 import { Footer } from './components/Footer'
-import { ProtectedRoute } from './components/ProtectedRoute'
 import { Landing } from './pages/Landing'
-import { AdminLogin } from './pages/AdminLogin'
 import { StudentDashboard } from './pages/StudentDashboard'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { ServiceDashboard } from './pages/ServiceDashboard'
+import { ResolveDID } from './pages/ResolveDID'
 import './index.css'
 
 /**
@@ -18,52 +17,24 @@ import './index.css'
  */
 const AppContent = () => {
   const { walletAddress, isConnected, connectWallet, disconnectWallet } = useWalletContext()
-  const { currentRole } = useRoleContext()
-  const location = useLocation()
-
-  // Hide navbar on landing and admin-login pages
-  const showNavbar = location.pathname !== '/' && location.pathname !== '/admin-login'
 
   const handleDisconnect = () => {
     disconnectWallet()
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {showNavbar && (
-        <Navbar
-          onDisconnect={handleDisconnect}
-        />
-      )}
+    <div className="flex flex-col min-h-screen bg-cover" style={{ backgroundImage: 'linear-gradient(to bottom, #0A0A0F, #0A0A0F)' }}>
+      <Navbar
+        onDisconnect={handleDisconnect}
+      />
 
-      <main className="flex-1 bg-gray-50">
+      <main className="flex-1 page-bg">
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route
-            path="/student"
-            element={
-              <ProtectedRoute requiredRole="student">
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/service"
-            element={
-              <ProtectedRoute requiredRole="service">
-                <ServiceDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/resolve" element={<ResolveDID />} />
+          <Route path="/student" element={<StudentDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/service" element={<ServiceDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -73,23 +44,24 @@ const AppContent = () => {
       <Toaster 
         position="bottom-right"
         toastOptions={{
-          duration: 4000,
           style: {
-            background: '#fff',
-            color: '#333',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            background: '#16161F',
+            border: '1px solid rgba(99, 102, 241, 0.25)',
+            color: '#F1F5F9',
+            borderRadius: '12px',
+            fontFamily: 'Inter',
+            fontSize: '14px',
           },
           success: {
             iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
+              primary: '#10B981',
+              secondary: '#16161F',
             },
           },
           error: {
             iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
+              primary: '#EF4444',
+              secondary: '#16161F',
             },
           },
         }}

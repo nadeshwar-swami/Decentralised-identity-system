@@ -1,254 +1,237 @@
 import { useNavigate } from 'react-router-dom'
-import { useWalletContext } from '../context/WalletContext'
 import { useRoleContext } from '../context/RoleContext'
-import { User, Shield, Briefcase, Lock, FileText, Share2 } from 'lucide-react'
+import { User, Shield, Briefcase, ArrowRight, CheckCircle2, Wallet, Award, Share2, Zap, ChevronRight } from 'lucide-react'
 
 /**
  * Landing page - intro with role cards
  */
 export const Landing = () => {
   const navigate = useNavigate()
-  const { isConnected, connectWallet } = useWalletContext()
   const { switchRole } = useRoleContext()
 
   const handleRoleSelect = (role) => {
-    if (role === 'admin') {
-      // Admins must go through login portal
-      navigate('/admin-login')
-    } else {
-      switchRole(role)
-      navigate(`/${role}`)
-    }
-  }
-
-  const handleConnectWallet = async () => {
-    try {
-      await connectWallet()
-    } catch (err) {
-      console.error('Wallet connection error:', err)
-    }
+    switchRole(role)
+    navigate(`/${role}`)
   }
 
   const roles = [
     {
       id: 'student',
-      title: 'Student',
+      title: 'Student Workspace',
+      subtitle: 'Own your campus identity',
       icon: User,
-      description: 'Create your DID, receive credentials, and manage your academic identity',
-      color: 'bg-blue-50 border-blue-200 text-blue-600',
-      features: ['Create Decentralized Identity', 'Receive Verifiable Credentials', 'Control Your Data'],
+      features: [
+        '→ Create your DID anchored on Algorand',
+        '→ Receive credential NFTs from university',
+        '→ Share only what each service needs',
+        '→ One wallet for library, hostel, events, exams'
+      ],
+      tag: 'For Students',
+      accent: 'from-purple-500/20 to-indigo-500/20 border-indigo-500/30',
     },
     {
       id: 'admin',
-      title: 'Administrator',
+      title: 'Issuance Workspace',
+      subtitle: 'Issue tamper-proof credentials',
       icon: Shield,
-      description: 'Issue verifiable credentials to students (authorization required)',
-      color: 'bg-purple-50 border-purple-200 text-purple-600',
-      features: ['Issue Credentials', 'Manage Users', 'View Reports'],
-      locked: true,
+      features: [
+        '→ Issue verified credentials as Algorand NFTs',
+        '→ Credentials logged immutably on-chain',
+        '→ Manage all student credential records',
+        '→ Bulk issuance for entire departments'
+      ],
+      tag: 'For University Admin',
+      accent: 'from-violet-500/20 to-purple-500/20 border-purple-500/30',
     },
     {
       id: 'service',
-      title: 'Service Provider',
+      title: 'Verification Workspace',
+      subtitle: 'Verify without storing',
       icon: Briefcase,
-      description: 'Verify student credentials and access shared information',
-      color: 'bg-green-50 border-green-200 text-green-600',
-      features: ['Verify Credentials', 'Request Information', 'Build Trust'],
+      features: [
+        '→ Scan student QR code or paste proof',
+        '→ Verify against Algorand blockchain',
+        '→ Zero data retention — verify and forget',
+        '→ Full audit trail of every verification'
+      ],
+      tag: 'For Campus Services',
+      accent: 'from-cyan-500/20 to-teal-500/20 border-cyan-500/30',
     },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-16 pt-8">
-          <div className="text-6xl mb-6 animate-pulse">🔐</div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-            Decentralized Identity System
+    <div className="page-bg blob-container relative min-h-screen">
+      <div className="blob-1"></div>
+      <div className="blob-2"></div>
+      
+      <div className="page-shell">
+        <div className="text-center mb-8 lg:mb-12">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/5 backdrop-blur-sm mb-6 text-sm text-cyan-300">
+            <span></span>
+            <span>Built on Algorand TestNet</span>
+            <span className="text-cyan-500/50">•</span>
+            <span>W3C DID Standard</span>
+            <span className="text-cyan-500/50">•</span>
+            <span>On-Chain Identity Registry</span>
+            <span></span>
+          </div>
+          <h1 className="text-5xl lg:text-6xl font-display font-bold mb-6 leading-tight">
+            <span className="text-slate-400">Decentralised Identity System</span>{' '}
+            <span className="text-slate-200">for&nbsp;Campuses</span>
           </h1>
-          <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-6">
-            A blockchain-based ecosystem where students own their educational identity, 
-            universities issue verifiable claims, and services verify authenticity—all on Algorand
+          <p className="text-lg lg:text-xl text-secondary max-w-2xl mx-auto leading-relaxed">
+            One wallet connects you to every campus service.<br />
+            No passwords. No data leaks. No middlemen.
           </p>
+        </div>
 
-          {!isConnected && (
+        <section className="card mb-8 lg:mb-10 backdrop-blur-md">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">What is Campus DID?</h2>
+              <p className="text-secondary text-base leading-relaxed">
+                Campus DID replaces every campus login, ID card, and paper credential with a single blockchain identity. 
+                Students own their data. Universities issue tamper-proof credentials. Services verify in seconds — without storing anything.
+              </p>
+              <p className="text-secondary text-base leading-relaxed mt-3">
+                Powered by Algorand's 4-second finality and IPFS decentralized storage.
+              </p>
+            </div>
+
+            <div className="panel-card-soft">
+              <h2 className="text-lg font-semibold mb-4">Why this platform</h2>
+              <ul className="space-y-3 text-sm text-secondary">
+                <li>Your DID is permanent — no university can revoke your identity</li>
+                <li>Credentials are NFTs — provably yours, forever on-chain</li>
+                <li>Selective disclosure — show only what each service needs</li>
+                <li>4-second verification — faster than swiping a card</li>
+                <li>W3C standard — works beyond this campus, globally</li>
+                <li>Zero passwords — your wallet IS your login</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="flex flex-wrap justify-center items-center gap-8 lg:gap-12 mb-10 py-8">
+          <div className="text-center">
+            <div className="text-3xl lg:text-4xl font-bold gradient-text mb-1">&lt; 4s</div>
+            <div className="text-sm text-muted">Verification Speed</div>
+          </div>
+          <div className="hidden lg:block w-px h-16 bg-white/10"></div>
+          <div className="text-center">
+            <div className="text-3xl lg:text-4xl font-bold gradient-text mb-1">100%</div>
+            <div className="text-sm text-muted">On-Chain Audit Trail</div>
+          </div>
+          <div className="hidden lg:block w-px h-16 bg-white/10"></div>
+          <div className="text-center">
+            <div className="text-3xl lg:text-4xl font-bold gradient-text mb-1">0</div>
+            <div className="text-sm text-muted">Passwords Required</div>
+          </div>
+          <div className="hidden lg:block w-px h-16 bg-white/10"></div>
+          <div className="text-center">
+            <div className="text-3xl lg:text-4xl font-bold gradient-text mb-1">W3C</div>
+            <div className="text-sm text-muted">DID Standard</div>
+          </div>
+        </section>
+
+        <section className="grid lg:grid-cols-3 gap-6 mb-10">
+          {roles.map(({ id, title, subtitle, icon: Icon, features, tag, accent }) => (
             <button
-              onClick={handleConnectWallet}
-              className="btn-primary inline-flex items-center gap-2 text-lg"
-            >
-              <Lock size={20} />
-              Connect Wallet to Begin
-            </button>
-          )}
-        </div>
-
-        {/* System Overview */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 text-white hover:bg-white/20 transition">
-            <div className="text-4xl mb-3">📋</div>
-            <h3 className="text-lg font-semibold mb-2">Self-Sovereign Identity</h3>
-            <p className="text-blue-100 text-sm">
-              Students create and control their own decentralized identifier (DID) on Algorand blockchain
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 text-white hover:bg-white/20 transition">
-            <div className="text-4xl mb-3">📜</div>
-            <h3 className="text-lg font-semibold mb-2">Verifiable Credentials</h3>
-            <p className="text-blue-100 text-sm">
-              Universities issue NFT-based credentials anchored on-chain with cryptographic proof
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 text-white hover:bg-white/20 transition">
-            <div className="text-4xl mb-3">🔗</div>
-            <h3 className="text-lg font-semibold mb-2">Selective Disclosure</h3>
-            <p className="text-blue-100 text-sm">
-              Students choose what to share with service providers while maintaining privacy
-            </p>
-          </div>
-        </div>
-
-        {/* Role Selection Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
-          {roles.map(({ id, title, icon: Icon, description, color, features, locked }, index) => (
-            <div
               key={id}
-              className={`relative group fade-in`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              onClick={() => handleRoleSelect(id)}
+              className={`text-left card hover:shadow-lg hover:-translate-y-0.5 transition-all bg-gradient-to-br ${accent} backdrop-blur-md`}
             >
-              {locked && (
-                <div className="absolute top-0 right-0 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold z-10">
-                  🔒 Authorized Access
-                </div>
-              )}
-              <div
-                className={`card border-2 ${color} h-full flex flex-col transition-all duration-200 ${
-                  locked ? 'opacity-90' : 'hover:shadow-xl hover:scale-105 cursor-pointer'
-                }`}
-                onClick={() => !locked && handleRoleSelect(id)}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`p-3 rounded-lg ${color}`}>
-                    <Icon size={28} />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-gray-900">{title}</h3>
-                </div>
-                <p className="text-gray-600 mb-4 flex-grow">{description}</p>
-
-                {/* Features */}
-                <div className="mb-6 space-y-2">
-                  {features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                      <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-
-                {locked ? (
-                  <button
-                    onClick={() => handleRoleSelect(id)}
-                    className="btn-primary w-full group/btn"
-                  >
-                    <Lock size={16} className="group-hover/btn:rotate-0 transition" />
-                    Admin Portal Login
-                  </button>
-                ) : (
-                  <button onClick={() => handleRoleSelect(id)} className="btn-primary w-full">
-                    Enter as {title}
-                  </button>
-                )}
+              <div className="inline-flex p-3 rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-indigo-500/20">
+                <Icon size={22} className="text-indigo-400" />
               </div>
-            </div>
+              <h3 className="text-xl font-semibold mt-4">{title}</h3>
+              <p className="text-sm text-indigo-300 mt-1">{subtitle}</p>
+              <div className="mt-4 space-y-2">
+                {features.map((feature, idx) => (
+                  <p key={idx} className="text-sm text-secondary leading-relaxed">{feature}</p>
+                ))}
+              </div>
+              <div className="mt-5 pt-5 border-t border-white/5 flex items-center justify-between">
+                <span className="text-xs font-mono text-muted">{tag}</span>
+                <div className="inline-flex items-center gap-2 text-indigo-400 font-semibold text-sm">
+                  Open workspace <ArrowRight size={15} />
+                </div>
+              </div>
+            </button>
           ))}
-        </div>
+        </section>
 
-        {/* How It Works Section */}
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-blue-100 mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            🚀 How It Works
-          </h2>
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold mb-4">
-                1
+        <section className="card backdrop-blur-md mb-10">
+          <h2 className="text-2xl font-bold mb-8 text-center">How It Works</h2>
+          <div className="w-full flex flex-col md:flex-row items-center md:items-start justify-center px-5 py-10 gap-0">
+            <div className="flex flex-col items-center text-center w-40">
+              <div className="w-5 h-5 mb-2 rounded-full bg-[rgba(99,102,241,0.2)] border border-[rgba(99,102,241,0.4)] text-[#A5B4FC] text-[11px] font-semibold flex items-center justify-center">1</div>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-[rgba(99,102,241,0.15)] border border-[rgba(99,102,241,0.3)]">
+                <Wallet size={28} className="text-indigo-400" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Student Creates DID</h3>
-              <p className="text-gray-600 text-sm">
-                Student registers their decentralized identity anchored on Algorand blockchain
-              </p>
+              <h3 className="text-[15px] font-semibold text-[#E2E8F0] mb-1">Connect</h3>
+              <p className="text-[13px] text-[#64748B] text-center max-w-[120px]">Link your Pera Wallet on TestNet</p>
             </div>
-            <div className="text-center">
-              <div className="bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold mb-4">
-                2
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Complete Profile</h3>
-              <p className="text-gray-600 text-sm">
-                Profile is locked after first credential is issued for data integrity
-              </p>
+
+            <div className="w-10 shrink-0 flex items-center justify-center mb-5 text-[rgba(99,102,241,0.3)] rotate-90 md:rotate-0">
+              <ChevronRight size={20} />
             </div>
-            <div className="text-center">
-              <div className="bg-purple-100 text-purple-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold mb-4">
-                3
+
+            <div className="flex flex-col items-center text-center w-40">
+              <div className="w-5 h-5 mb-2 rounded-full bg-[rgba(99,102,241,0.2)] border border-[rgba(99,102,241,0.4)] text-[#A5B4FC] text-[11px] font-semibold flex items-center justify-center">2</div>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.3)]">
+                <Shield size={28} className="text-violet-400" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Admin Issues Credential</h3>
-              <p className="text-gray-600 text-sm">
-                Authorized admin issues verifiable credential NFT with on-chain proof
-              </p>
+              <h3 className="text-[15px] font-semibold text-[#E2E8F0] mb-1">Register</h3>
+              <p className="text-[13px] text-[#64748B] text-center max-w-[120px]">Anchor your DID on Algorand</p>
             </div>
-            <div className="text-center">
-              <div className="bg-orange-100 text-orange-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl font-bold mb-4">
-                4
+
+            <div className="w-10 shrink-0 flex items-center justify-center mb-5 text-[rgba(99,102,241,0.3)] rotate-90 md:rotate-0">
+              <ChevronRight size={20} />
+            </div>
+
+            <div className="flex flex-col items-center text-center w-40">
+              <div className="w-5 h-5 mb-2 rounded-full bg-[rgba(99,102,241,0.2)] border border-[rgba(99,102,241,0.4)] text-[#A5B4FC] text-[11px] font-semibold flex items-center justify-center">3</div>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.3)]">
+                <Award size={28} className="text-purple-400" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Share Selectively</h3>
-              <p className="text-gray-600 text-sm">
-                Student creates presentations and shares only required credential data
-              </p>
+              <h3 className="text-[15px] font-semibold text-[#E2E8F0] mb-1">Receive</h3>
+              <p className="text-[13px] text-[#64748B] text-center max-w-[120px]">Get credential NFTs</p>
+            </div>
+
+            <div className="w-10 shrink-0 flex items-center justify-center mb-5 text-[rgba(99,102,241,0.3)] rotate-90 md:rotate-0">
+              <ChevronRight size={20} />
+            </div>
+
+            <div className="flex flex-col items-center text-center w-40">
+              <div className="w-5 h-5 mb-2 rounded-full bg-[rgba(99,102,241,0.2)] border border-[rgba(99,102,241,0.4)] text-[#A5B4FC] text-[11px] font-semibold flex items-center justify-center">4</div>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-[rgba(6,182,212,0.15)] border border-[rgba(6,182,212,0.3)]">
+                <Share2 size={28} className="text-cyan-400" />
+              </div>
+              <h3 className="text-[15px] font-semibold text-[#E2E8F0] mb-1">Verify</h3>
+              <p className="text-[13px] text-[#64748B] text-center max-w-[120px]">Share proof via QR</p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Key Features Grid */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white">
-          <h2 className="text-3xl font-bold mb-8 text-center">✨ Key Features</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex gap-4">
-              <FileText size={24} className="flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">W3C Standard Credentials</h3>
-                <p className="text-blue-100 text-sm">
-                  Credentials follow W3C Verifiable Credentials specification
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <Lock size={24} className="flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Admin Authorization</h3>
-                <p className="text-blue-100 text-sm">
-                  Only authorized admin wallets can issue credentials
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <Share2 size={24} className="flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Selective Disclosure</h3>
-                <p className="text-blue-100 text-sm">
-                  Students control what information they share
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <FileText size={24} className="flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">IPFS Storage</h3>
-                <p className="text-blue-100 text-sm">
-                  Credentials stored on IPFS, indexed on blockchain
-                </p>
-              </div>
-            </div>
+        <section className="text-center py-6 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted">
+            <span className="flex items-center gap-2">
+              <Zap size={16} className="text-indigo-400" />
+              Algorand TestNet
+            </span>
+            <span className="text-white/20">•</span>
+            <span className="flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-violet-400" />
+              IPFS + Pinata Storage
+            </span>
+            <span className="text-white/20">•</span>
+            <span className="flex items-center gap-2">
+              <Shield size={16} className="text-cyan-400" />
+              W3C DID + VC Standard
+            </span>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

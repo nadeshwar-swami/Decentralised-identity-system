@@ -8,11 +8,11 @@ Deploy your Campus DID application **for free** using:
 
 ## Prerequisites
 
-1. ✅ GitHub repository pushed: `nadeshwar-swami/Decentralised-identity-system`
-2. ✅ Render account: https://render.com (sign up with GitHub)
-3. ✅ Vercel account: https://vercel.com (sign up with GitHub)
-4. ✅ Pinata account: https://pinata.cloud (for IPFS)
-5. ✅ Algorand TestNet credentials
+1. [OK] GitHub repository pushed: `nadeshwar-swami/Decentralised-identity-system`
+2. [OK] Render account: https://render.com (sign up with GitHub)
+3. [OK] Vercel account: https://vercel.com (sign up with GitHub)
+4. [OK] Pinata account: https://pinata.cloud (for IPFS)
+5. [OK] Algorand TestNet credentials
 
 ---
 
@@ -162,9 +162,9 @@ https://campus-did.vercel.app
 ```
 
 Verify:
-- ✅ Page loads without 404
-- ✅ Navbar shows role options (Student, Admin, Service)
-- ✅ Landing page displays
+- [OK] Page loads without 404
+- [OK] Navbar shows role options (Student, Admin, Service)
+- [OK] Landing page displays
 
 ### 4.2 Test Wallet Integration
 

@@ -58,9 +58,9 @@ npm run dev
 - ✅ Transaction ID visible
 
 **Failure Cases to Test**:
-- ❌ No wallet connected → Should show "Connect Your Wallet" message
-- ❌ Already registered → Should show "Already Registered"
-- ❌ Insufficient ALGO → Should show error message
+- [ERROR] No wallet connected → Should show "Connect Your Wallet" message
+- [ERROR] Already registered → Should show "Already Registered"
+- [ERROR] Insufficient ALGO → Should show error message
 
 ---
 
@@ -77,22 +77,22 @@ npm run dev
 6. Wait for confirmation
 
 **Expected Results**:
-- ✅ Success message with credential ID
-- ✅ NFT minted on Algorand (check AlgoExplorer)
-- ✅ IPFS hash displayed
-- ✅ Transaction ID shown
-- ✅ Credential stored in backend
+- [OK] Success message with credential ID
+- [OK] NFT minted on Algorand (check AlgoExplorer)
+- [OK] IPFS hash displayed
+- [OK] Transaction ID shown
+- [OK] Credential stored in backend
 
 **Test All Credential Types**:
-- 📚 Student Enrolled
-- 📖 Library Access
-- 🏠 Hostel Resident
-- 🎫 Event Pass
+- Student Enrolled
+- Library Access
+- Hostel Resident
+- Event Pass
 
 **Failure Cases**:
-- ❌ Invalid wallet address → Should show validation error
-- ❌ Missing fields → Should prevent submission
-- ❌ Insufficient ALGO → Should show error
+- [ERROR] Invalid wallet address → Should show validation error
+- [ERROR] Missing fields → Should prevent submission
+- [ERROR] Insufficient ALGO → Should show error
 
 ---
 

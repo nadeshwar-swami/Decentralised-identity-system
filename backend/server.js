@@ -6,6 +6,7 @@ import didRoutes from './routes/did.js'
 import credentialRoutes from './routes/credentials.js'
 import servicesRoutes from './routes/services.js'
 import verifyRoutes from './routes/verify.js'
+import { resolveDID } from './utils/didBuilder.js'
 
 dotenv.config()
 
@@ -19,20 +20,81 @@ app.use(express.json())
 // CORS Configuration - Support both local dev and production
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
   ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : [])
 ]
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true)
+    }
+
+    const isExplicitlyAllowed = allowedOrigins.includes(origin)
+    const isLocalhostDev = /^https?:\/\/(localhost|127\.0\.0\.1):(\d+)$/.test(origin)
+
+    if (isExplicitlyAllowed || isLocalhostDev) {
+      return callback(null, true)
+    }
+
+    return callback(new Error(`Not allowed by CORS: ${origin}`))
+  },
   credentials: true,
 }))
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ success: true, message: 'Campus DID API running' })
+})
+
+// Universal Resolver compatible endpoint
+app.get('/1.0/identifiers/:did', async (req, res) => {
+  try {
+    const decodedDid = decodeURIComponent(req.params.did)
+    const parsed = resolveDID(decodedDid)
+
+    const didResponse = await fetch(
+      `http://localhost:${PORT}/api/did/${parsed.walletAddress}`
+    )
+
+    if (!didResponse.ok) {
+      const status = didResponse.status === 404 ? 404 : 400
+      return res.status(status).json({
+        didDocument: null,
+        didDocumentMetadata: {},
+        didResolutionMetadata: {
+          error: didResponse.status === 404 ? 'notFound' : 'invalidDid',
+          message: 'DID not found or invalid',
+        },
+      })
+    }
+
+    const payload = await didResponse.json()
+    const didDocument = payload?.data?.didDocument || null
+
+    return res.json({
+      didDocument,
+      didDocumentMetadata: {
+        network: process.env.ALGORAND_NETWORK || 'testnet',
+      },
+      didResolutionMetadata: {
+        contentType: 'application/did+ld+json',
+      },
+    })
+  } catch (error) {
+    return res.status(400).json({
+      didDocument: null,
+      didDocumentMetadata: {},
+      didResolutionMetadata: {
+        error: 'invalidDid',
+        message: error.message,
+      },
+    })
+  }
 })
 
 // Routes

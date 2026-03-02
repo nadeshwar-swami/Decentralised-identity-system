@@ -40,7 +40,7 @@ export const WalletConnect = ({ onDisconnect }) => {
         <button
           onClick={handleConnect}
           disabled={isConnecting}
-          className="btn-primary flex items-center gap-2 hover:shadow-md transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+          className="gradient-primary text-white border border-indigo-500/20 px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isConnecting ? (
             <>
@@ -55,14 +55,14 @@ export const WalletConnect = ({ onDisconnect }) => {
           )}
         </button>
       ) : (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm font-medium text-green-700">
-            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-1 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-sm font-semibold text-emerald-400 mono">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse-custom"></span>
             {truncateAddress(walletAddress)}
           </div>
           <button
             onClick={handleDisconnect}
-            className="btn-secondary text-sm flex items-center gap-1 hover:bg-gray-300 transition-colors"
+            className="bg-white/5 border border-white/10 text-slate-300 hover:text-slate-200 hover:bg-white/10 text-sm flex items-center gap-1 px-4 py-2 rounded-lg font-semibold transition-all"
           >
             <LogOut size={14} />
             Disconnect
