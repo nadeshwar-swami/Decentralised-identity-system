@@ -50,76 +50,144 @@ Before testing, ensure:
 
 ---
 
-## Test 2: DID Creation & Management
+## Test 2: DID Creation & Management ✅ COMPLETED
 
 ### 2.1 Create DID (Student Role)
 **Expected**: Student can generate new DID Document
+**Status**: ✅ PASSED
 
-- [ ] Go to **Student Dashboard**
-- [ ] In "My DIDs" section, click **Create DID**
-- [ ] Enter Display Name (e.g., "John Smith")
-- [ ] Click **Create**
-- [ ] Notice displays: DID string, Public Key, Creation date
-- [ ] DID format: `did:algo:testnet:ADDRESS`
-
-**Troubleshooting**:
-- If "Failed to create DID" error:
-  - Check backend `/api/did/create` logs
-  - Verify wallet connected
-  - Ensure wallet has → 0.1 ALGO (transaction fee)
+- [x] Go to **Student Dashboard**
+- [x] In "My DIDs" section, click **Create DID**
+- [x] Enter Display Name (e.g., "John Smith")
+- [x] Click **Create**
+- [x] Notice displays: DID string, Public Key, Creation date
+- [x] DID format: `did:algo:testnet:ADDRESS`
 
 ### 2.2 Register DID (Save to Chain)
 **Expected**: DID persists on Algorand blockchain
+**Status**: ✅ PASSED
 
-- [ ] After DID created, click **Register to Chain**
-- [ ] Approve transaction in wallet
-- [ ] Wait 5-10 seconds
-- [ ] Message: "DID registered successfully"
-- [ ] Refresh page → DID still shows
-
-**Troubleshooting**:
-- If transaction fails: Wallet may not have enough ALGO
-- If "DID already registered": Previous transaction succeeded, safe to ignore
-- If backend timeout: Algorand network may be slow (try again in 1 min)
+- [x] After DID created, click **Register to Chain**
+- [x] Approve transaction in wallet
+- [x] Wait 5-10 seconds
+- [x] Message: "DID registered successfully"
+- [x] Refresh page → DID still shows
 
 ---
 
 ## Test 3: Credential Issuance
 
-### 3.1 Admin Issuing Credential
-**Expected**: Admin can issue credentials to students
+### 3.1 Admin Issuing Credential (Step-by-Step)
+**Expected**: Admin can issue credentials to students based on their profile data
 
-**Setup**:
-- Switch to **Admin** role
-- Go to **Admin Dashboard**
+**Prerequisites**:
+- ✅ Student has completed their profile (Test with Profile Lock)
+- ✅ Student has created and registered their DID on-chain
+- ✅ Both servers running: backend (3001) + frontend (5173)
+
+**Setup Instructions**:
+
+**Step 1: Connect as Student & Complete Profile**
+- Go to http://localhost:5173/
+- Click **"Connect Wallet"** → Select wallet → Approve connection
+- Wait for wallet to connect
+- You should see **"Complete Your Profile First"** card in Student Dashboard
+- Fill in profile form:
+  - Full Name: Your Name
+  - Student ID: STU-2024-001
+  - Email: your.email@university.edu
+  - Date of Birth: Select a date
+  - Admission Number: ADM-2024-001
+  - Mobile: +91-9999999999
+  - Department: Computer Science
+  - Year: 2nd Year
+- Click **"Save Profile & Continue"** button
+- Profile should save and show as completed
+- Click **"Create DID"** button
+- Approve wallet transaction
+- Wait for transaction confirmation (5-10 seconds)
+- Confirm: DID shows as registered with transaction link
+
+**Step 2: Switch to Admin Role & Issue Credential**
+- In same browser, go to http://localhost:5173/
+- Click on **"Admin"** in top navbar
+- You should see **"Issue Credentials"** page
+- Form shows:
+  - Student Wallet Address field
+  - Credential Type dropdown (Student Enrolled, Library Access, Hostel Resident, Event Pass)
+  - Submit button
+
+**Step 3: Issue Credential to Student**
+- Copy your wallet address from sidebar (Admin Wallet section)
+- Paste into **"Student Wallet Address"** field
+- Select Credential Type: **"📚 Student Enrolled"**
+- Click **"Issue Credential NFT"** button
+- Wait for processing (5-10 seconds)
+- Should see success message with:
+  - Asset ID
+  - Transaction ID (clickable link to Algorand Explorer)
+  - IPFS Hash
+
+**Success Indicators** ✅:
+- [ ] Form accepted your wallet address
+- [ ] No error messages
+- [ ] Success card appeared with credential details
+- [ ] Asset ID generated
+- [ ] Transaction ID provided
+- [ ] Can click link to view on Algorand Explorer
 
 **Test Steps**:
-- [ ] List shows "Issued Credentials" section (initially empty)
-- [ ] Click **Issue New Credential**
-- [ ] Fill form:
-  - Student Address: (paste a student's wallet address)
-  - Credential Type: "AcademicRecord"
-  - Metadata: `{"grade": "A", "course": "DID101"}`
-- [ ] Click **Issue**
-- [ ] Wait for confirmation
-- [ ] Credential appears in "Issued Credentials" list
+- [x] Admin Dashboard loads
+- [x] Form shows "Student Wallet Address" field
+- [x] Can paste wallet address (58 characters)
+- [x] Credential Type dropdown shows options
+- [x] Click **Issue Credential NFT**
+- [x] Wait 5-10 seconds for processing
+- [x] Success message appears with details
+- [x] Credential data stored on IPFS (mock)
 
 **Troubleshooting**:
-- If "Invalid address" error: Copy exact address from student dashboard
-- If issuing timeout: Check backend logs, may need to wait for blockchain
-- If metadata rejected: Ensure valid JSON format
+- **"Invalid address" error** → Address must be exactly 58 characters, Algorand format
+- **"Request failed" error** → Check backend is running on port 3001
+- **Timeout (>15s)** → Backend may be processing IPFS upload, check backend logs in terminal
+- **No response** → Refresh page and try again
 
-### 3.2 Verify Credential on-chain
-**Expected**: Issued credential is stored in Pinata/IPFS
+### 3.2 Verify Credential and Check Student Profile Data
+**Expected**: Issued credential contains student's profile information and can be retrieved
 
-- [ ] In "Issued Credentials" list, click **View Details** on credential
-- [ ] Check metadata displays correctly
-- [ ] Copy credential ID
-- [ ] Test via API:
-```bash
-curl http://localhost:3001/api/credentials/details/CREDENTIAL_ID
+**Backend Verification**:
+- [ ] Open PowerShell terminal
+- [ ] Run API test to check stored credential:
+```powershell
+# Get credential details (use credentialId from success message)
+$credentialId = "CREDENTIAL_ID_FROM_SUCCESS_MESSAGE"
+curl "http://localhost:3001/api/credentials/details/$credentialId" | ConvertFrom-Json | ConvertTo-Json -Depth 10
 ```
-- [ ] Should return full credential JSON
+- [ ] Should return JSON with:
+  - `studentDID`: Full DID of student
+  - `studentProfile`: Student's full profile (name, email, department, etc.)
+  - `ipfsHash`: IPFS location of credential
+  - `issuer`: Admin wallet address
+  - `status`: "issued"
+
+**Student Dashboard Verification**:
+- [ ] Switch back to **Student** role (click Student in navbar)
+- [ ] Go to **Student Dashboard**
+- [ ] Look for **"My Credentials"** section
+- [ ] Should see the credential you just issued:
+  - Credential type shown
+  - Issue date visible
+  - Issuer (your admin address)
+  - Status (should be "Active" or "issued")
+- [ ] Click **View Details** on credential
+- [ ] Verify you can see full credential data
+
+**Success Indicators** ✅:
+- [ ] API returns full credential JSON
+- [ ] Credential includes student's profile data
+- [ ] Student Dashboard shows issued credential
+- [ ] Credential displays correctly in UI
+- [ ] All profile fields (name, email, dept) visible when viewing details
 
 ---
 
@@ -133,20 +201,21 @@ curl http://localhost:3001/api/credentials/details/CREDENTIAL_ID
 - Use same wallet address admin issued credential to
 
 **Test Steps**:
-- [ ] Go to **Student Dashboard**
-- [ ] "My Credentials" section shows issued credential
-- [ ] Credential displays:
-  - Type (e.g., "AcademicRecord")
+- [x] Go to **Student Dashboard**
+- [x] "My Credentials" section shows issued credential
+- [x] Credential displays:
+  - Type (e.g., "Student Enrolled")
   - Issue date
   - Issuer (Admin address)
   - Status (e.g., "Active")
-- [ ] Click **View Details** on credential
-- [ ] Full metadata visible
-- [ ] Click **Delete** to remove (optional test)
+- [x] Click **View Details** on credential
+- [x] Full metadata visible (including student profile data)
+- [x] Profile is now **LOCKED** - Edit Profile button shows 🔒 (due to Test 2 implementation)
 
 **Troubleshooting**:
 - If credential not showing: 
   - Refresh page
+
   - Check using correct student wallet address
   - Verify admin issued to this address
   - Check backend logs at `/api/credentials/WALLET_ADDRESS`
