@@ -16,8 +16,8 @@ export const ServiceDashboard = () => {
   const [serviceType, setServiceType] = useState('employer')
   const [contactEmail, setContactEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [presentationId, setPresentationId] = useState('')
-  const [verifyingPresentation, setVerifyingPresentation] = useState(false)
+  const [accessId, setAccessId] = useState('')
+  const [verifyingAccess, setVerifyingAccess] = useState(false)
   const [verificationStats, setVerificationStats] = useState(null)
   const [studentDid, setStudentDid] = useState('')
   const [requestingAccess, setRequestingAccess] = useState(false)
@@ -100,14 +100,14 @@ export const ServiceDashboard = () => {
     fetchServiceStats(savedServiceId)
   }, [])
 
-  const handleVerifyPresentation = async () => {
-    if (!serviceId || !presentationId.trim()) {
-      toast.error('Please enter a presentation ID')
+  const handleVerifyAccess = async () => {
+    if (!serviceId || !accessId.trim()) {
+      toast.error('Please enter an access ID')
       return
     }
 
     try {
-      setVerifyingPresentation(true)
+      setVerifyingAccess(true)
 
       // Mock student DID for this demo
       const appId = import.meta.env.VITE_APP_ID || '756415000'
@@ -119,7 +119,7 @@ export const ServiceDashboard = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            presentationId,
+            accessId,
             studentDID,
             credentialIds: ['cred_1', 'cred_2'],
             verificationPurpose: 'employment',
@@ -130,17 +130,17 @@ export const ServiceDashboard = () => {
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to verify presentation')
+        throw new Error(data.error || 'Failed to verify access')
       }
 
       setVerification(data.data)
-      setPresentationId('')
-      toast.success('Presentation verified successfully!')
+      setAccessId('')
+      toast.success('Access verified successfully!')
     } catch (err) {
-      console.error('Error verifying presentation:', err)
-      toast.error(err.message || 'Failed to verify presentation')
+      console.error('Error verifying access:', err)
+      toast.error(err.message || 'Failed to verify access')
     } finally {
-      setVerifyingPresentation(false)
+      setVerifyingAccess(false)
     }
   }
 
@@ -330,9 +330,9 @@ export const ServiceDashboard = () => {
                   </div>
                 )}
 
-                {/* Presentation Verification */}
+                {/* Access Verification */}
                 <div className="card">
-                  <h3 className="text-lg font-bold text-white mb-4">Verify Student Presentation</h3>
+                  <h3 className="text-lg font-bold text-white mb-4">Verify Student Access</h3>
 
                   <div className="space-y-4">
                     <div>
@@ -341,8 +341,8 @@ export const ServiceDashboard = () => {
                       </label>
                       <input
                         type="text"
-                        value={presentationId}
-                        onChange={(e) => setPresentationId(e.target.value)}
+                        value={accessId}
+                        onChange={(e) => setAccessId(e.target.value)}
                         placeholder="Paste access ID here"
                         className="input-field w-full"
                       />
@@ -352,12 +352,12 @@ export const ServiceDashboard = () => {
                     </div>
 
                     <button
-                      onClick={handleVerifyPresentation}
-                      disabled={verifyingPresentation || !presentationId}
+                      onClick={handleVerifyAccess}
+                      disabled={verifyingAccess || !accessId}
                       className="btn-primary w-full flex items-center justify-center gap-2"
                     >
-                      {verifyingPresentation && <Loader2 size={18} className="animate-spin" />}
-                      {verifyingPresentation ? 'Verifying...' : 'Verify Presentation'}
+                      {verifyingAccess && <Loader2 size={18} className="animate-spin" />}
+                      {verifyingAccess ? 'Verifying...' : 'Verify Access'}
                     </button>
                   </div>
                 </div>
@@ -446,9 +446,9 @@ export const ServiceDashboard = () => {
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted uppercase font-semibold">Presentation ID</p>
+                          <p className="text-xs text-muted uppercase font-semibold">Access ID</p>
                           <p className="font-mono text-xs break-all text-white mt-1">
-                            {verification.presentationId}
+                            {verification.accessId}
                           </p>
                         </div>
                       </div>
@@ -580,11 +580,11 @@ export const ServiceDashboard = () => {
               <ol className="space-y-2 text-xs text-indigo-300/80">
                 <li className="flex gap-2">
                   <span className="font-bold flex-shrink-0">1.</span>
-                  <span>Student creates a presentation</span>
+                  <span>Student creates an access request</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold flex-shrink-0">2.</span>
-                  <span>Shares presentation ID</span>
+                  <span>Shares access ID</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold flex-shrink-0">3.</span>
