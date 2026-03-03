@@ -337,17 +337,17 @@ export const ServiceDashboard = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-white mb-2">
-                        Presentation ID
+                        Access ID
                       </label>
                       <input
                         type="text"
                         value={presentationId}
                         onChange={(e) => setPresentationId(e.target.value)}
-                        placeholder="Paste presentation ID here"
+                        placeholder="Paste access ID here"
                         className="input-field w-full"
                       />
                       <p className="text-xs text-muted mt-2">
-                        The student will provide their presentation ID when applying
+                        The student will provide their access ID when applying
                       </p>
                     </div>
 

@@ -99,8 +99,8 @@ router.post('/issue', async (req, res) => {
     } = req.body
 
     // Normalize addresses
-    const normalizedStudentWallet = studentWallet || studentAddress
-    const normalizedIssuerWallet = issuerWallet || issuerAddress
+    const normalizedStudentWallet = (studentWallet || studentAddress).trim()
+    const normalizedIssuerWallet = (issuerWallet || issuerAddress).trim()
 
     // Validate wallet address
     if (!normalizedStudentWallet || normalizedStudentWallet.length !== 58) {
@@ -118,8 +118,8 @@ router.post('/issue', async (req, res) => {
       })
     }
 
-    // Authorize issuer wallet
-    if (authorizedAdmins.size > 0 && !authorizedAdmins.has(normalizedIssuerWallet)) {
+    // Authorize issuer wallet - always enforce
+    if (!authorizedAdmins.has(normalizedIssuerWallet)) {
       return res.status(403).json({
         success: false,
         error: 'Issuer wallet is not authorized to issue credentials',
@@ -903,29 +903,32 @@ router.post('/admin/verify-did', async (req, res) => {
   try {
     const { walletAddress, adminWallet } = req.body
 
-    if (!walletAddress || walletAddress.length !== 58) {
+    const normalizedWalletAddress = (walletAddress || '').trim()
+    const normalizedAdminWallet = (adminWallet || '').trim()
+
+    if (!normalizedWalletAddress || normalizedWalletAddress.length !== 58) {
       return res.status(400).json({
         success: false,
         error: 'Invalid student wallet address',
       })
     }
 
-    if (!adminWallet || adminWallet.length !== 58) {
+    if (!normalizedAdminWallet || normalizedAdminWallet.length !== 58) {
       return res.status(400).json({
         success: false,
         error: 'Invalid admin wallet address',
       })
     }
 
-    // Authorize admin wallet
-    if (authorizedAdmins.size > 0 && !authorizedAdmins.has(adminWallet)) {
+    // Authorize admin wallet - always enforce
+    if (!authorizedAdmins.has(normalizedAdminWallet)) {
       return res.status(403).json({
         success: false,
         error: 'Admin wallet is not authorized to verify DIDs',
       })
     }
 
-    const existing = studentDIDs.get(walletAddress)
+    const existing = studentDIDs.get(normalizedWalletAddress)
     if (!existing) {
       return res.status(404).json({
         success: false,
@@ -937,12 +940,12 @@ router.post('/admin/verify-did', async (req, res) => {
       ...existing,
       verificationStatus: 'verified',
       verifiedAt: new Date().toISOString(),
-      verifiedBy: adminWallet || null,
+      verifiedBy: normalizedAdminWallet || null,
     }
 
-    studentDIDs.set(walletAddress, verifiedRecord)
+    studentDIDs.set(normalizedWalletAddress, verifiedRecord)
 
-    console.log(`[OK] DID verified for ${walletAddress} by ${adminWallet || 'admin'}`)
+    console.log(`[OK] DID verified for ${normalizedWalletAddress} by ${normalizedAdminWallet || 'admin'}`)
 
     res.json({
       success: true,
