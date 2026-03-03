@@ -324,6 +324,7 @@ router.get('/details/:credentialId', async (req, res) => {
       studentDID: credentialRecord.studentDID,
       studentWallet: credentialRecord.studentWallet,
       studentName: credentialRecord.studentName,
+      studentProfile: credentialRecord.studentProfile || {},
       program: credentialRecord.program,
       credentialType: credentialRecord.credentialType,
       issuer: credentialRecord.issuerName,
