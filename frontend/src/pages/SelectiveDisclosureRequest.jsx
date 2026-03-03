@@ -45,21 +45,43 @@ export const SelectiveDisclosureRequest = () => {
     try {
       setLoading(true)
       
-      // Fetch credentials
+      // Fetch credentials preview
       const credRes = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/credentials/${walletAddress}`
       )
       if (credRes.ok) {
         const data = await credRes.json()
-        setCredentials(data.data?.credentials || [])
+        const credentialsList = data.data?.credentials || []
+        
+        // Fetch full details for each credential to get studentProfile
+        const credentialsWithDetails = await Promise.all(
+          credentialsList.map(async (cred) => {
+            try {
+              const detailRes = await fetch(
+                `${import.meta.env.VITE_BACKEND_URL}/api/credentials/details/${cred.credentialId}`
+              )
+              if (detailRes.ok) {
+                const detailData = await detailRes.json()
+                return {
+                  ...cred,
+                  ...detailData.data,
+                }
+              }
+              return cred
+            } catch (e) {
+              console.error('Error fetching credential details:', e)
+              return cred
+            }
+          })
+        )
+        
+        setCredentials(credentialsWithDetails)
         
         // Initialize selected fields
         const initial = {}
-        if (data.data?.credentials) {
-          data.data.credentials.forEach((cred, idx) => {
-            initial[idx] = !!cred.metadata // Share by default if metadata exists
-          })
-        }
+        credentialsWithDetails.forEach((cred, idx) => {
+          initial[idx] = true // Share by default
+        })
         setSelectedFields(initial)
       }
       
@@ -128,7 +150,7 @@ export const SelectiveDisclosureRequest = () => {
           body: JSON.stringify({
             studentWallet: walletAddress,
             studentDid: didDocument?.id,
-            credentialIds: selectedCredentials.map(c => c.id),
+            credentialIds: selectedCredentials.map(c => c.credentialId || c.id),
             requestId: requestId,
             serviceId: serviceInfo?.id,
           }),
@@ -271,10 +293,17 @@ export const SelectiveDisclosureRequest = () => {
                         className="mt-1 w-5 h-5 accent-indigo-500 cursor-pointer"
                       />
                       <div className="flex-1">
-                        <p className="font-semibold text-white">{credential.type || credential.name || 'Credential'}</p>
-                        <p className="text-xs text-muted mt-1">
-                          Issued: {new Date(credential.issuanceDate).toLocaleDateString()}
+                        <p className="font-semibold text-white">
+                          {credential.credentialType || 'Credential'}
                         </p>
+                        <p className="text-xs text-muted mt-1">
+                          {credential.issuedAt ? `Issued: ${new Date(credential.issuedAt).toLocaleDateString()}` : 'Issue date unavailable'}
+                        </p>
+                        {credential.studentName && (
+                          <p className="text-xs text-secondary mt-0.5">
+                            Student: {credential.studentName}
+                          </p>
+                        )}
                       </div>
                     </div>
                     {selectedFields[idx] && (
@@ -295,19 +324,23 @@ export const SelectiveDisclosureRequest = () => {
                           </>
                         ) : (
                           <>
-                            <Eye size={14} /> Show Fields
+                            <Eye size={14} /> Show Fields ({Object.keys(credential.studentProfile || {}).length})
                           </>
                         )}
                       </button>
 
                       {showAllFields[idx] && (
-                        <div className="space-y-2 text-xs">
-                          {Object.entries(credential.metadata || {}).map(([key, value]) => (
-                            <div key={key} className="flex justify-between">
-                              <span className="text-muted capitalize">{key}:</span>
-                              <span className="text-white font-mono">{String(value).substring(0, 40)}</span>
-                            </div>
-                          ))}
+                        <div className="space-y-2 text-xs max-h-64 overflow-y-auto">
+                          {Object.keys(credential.studentProfile || {}).length > 0 ? (
+                            Object.entries(credential.studentProfile || {}).map(([key, value]) => (
+                              <div key={key} className="flex justify-between py-1 border-b border-white/5">
+                                <span className="text-muted capitalize font-medium">{key}:</span>
+                                <span className="text-white font-mono text-right">{String(value).substring(0, 50)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-muted italic py-2">No additional profile fields to share</p>
+                          )}
                         </div>
                       )}
                     </div>
