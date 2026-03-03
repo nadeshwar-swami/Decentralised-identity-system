@@ -5,9 +5,13 @@ import toast from 'react-hot-toast'
 
 /**
  * AdminDashboard - admin credential issuance
+ * Only authorized admin wallets can access this dashboard
  */
 export const AdminDashboard = () => {
   const { walletAddress, isConnected } = useWalletContext()
+
+  // Authorized admin wallet - must match AUTHORIZED_ADMINS in backend .env
+  const AUTHORIZED_ADMIN = 'FVAPL2RSBVYK7IMOUYRKW2HRC34622TWTQKT3GARPDZIUG3QKRPNMEVJX4'
 
   const [studentAddress, setStudentAddress] = useState('')
   const [credentialType, setCredentialType] = useState('STUDENT_ENROLLED')
@@ -129,6 +133,21 @@ export const AdminDashboard = () => {
           <AlertCircle className="inline-block text-orange-400 mb-3" size={28} />
           <p className="text-orange-300 font-semibold">Connect your wallet to access issuance controls</p>
           <p className="text-sm text-orange-400/80 mt-2">Only authorized administrator wallets can issue credentials.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if connected wallet is authorized admin
+  if (walletAddress !== AUTHORIZED_ADMIN) {
+    return (
+      <div className="page-bg page-shell">
+        <div className="card bg-red-500/10 border-red-500/20 text-center">
+          <ShieldCheck className="inline-block text-red-400 mb-3" size={28} />
+          <p className="text-red-300 font-semibold">Unauthorized Access</p>
+          <p className="text-sm text-red-400/80 mt-2">Your wallet is not authorized to access the admin panel.</p>
+          <p className="text-xs text-red-500/70 mt-3 font-mono break-all">Connected: {walletAddress}</p>
+          <p className="text-xs text-red-500/70 mt-1 font-mono break-all">Authorized: {AUTHORIZED_ADMIN}</p>
         </div>
       </div>
     )
