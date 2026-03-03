@@ -118,6 +118,14 @@ router.post('/issue', async (req, res) => {
       })
     }
 
+    // Authorize issuer wallet
+    if (authorizedAdmins.size > 0 && !authorizedAdmins.has(normalizedIssuerWallet)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Issuer wallet is not authorized to issue credentials',
+      })
+    }
+
     console.log(`\n📜 Issuing credential for ${normalizedStudentWallet}...`)
 
     // Step 1: Resolve student DID and profile
@@ -902,14 +910,15 @@ router.post('/admin/verify-did', async (req, res) => {
       })
     }
 
-    if (adminWallet && adminWallet.length !== 58) {
+    if (!adminWallet || adminWallet.length !== 58) {
       return res.status(400).json({
         success: false,
         error: 'Invalid admin wallet address',
       })
     }
 
-    if (authorizedAdmins.size > 0 && adminWallet && !authorizedAdmins.has(adminWallet)) {
+    // Authorize admin wallet
+    if (authorizedAdmins.size > 0 && !authorizedAdmins.has(adminWallet)) {
       return res.status(403).json({
         success: false,
         error: 'Admin wallet is not authorized to verify DIDs',

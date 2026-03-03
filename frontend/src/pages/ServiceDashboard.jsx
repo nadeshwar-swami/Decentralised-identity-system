@@ -21,6 +21,7 @@ export const ServiceDashboard = () => {
   const [verificationStats, setVerificationStats] = useState(null)
   const [studentDid, setStudentDid] = useState('')
   const [requestingAccess, setRequestingAccess] = useState(false)
+  const [generatedShareLink, setGeneratedShareLink] = useState('')
 
   const handleRegisterService = async (e) => {
     e.preventDefault()
@@ -181,10 +182,7 @@ export const ServiceDashboard = () => {
       const shareLink = `${window.location.origin}/share?requestId=${requestId}&serviceId=${serviceId}`
       
       toast.success('Access request created!')
-      
-      // Show share link
-      const message = `Share this link with the student:\n\n${shareLink}`
-      alert(message)
+      setGeneratedShareLink(shareLink)
       
       setStudentDid('')
     } catch (err) {
@@ -366,7 +364,7 @@ export const ServiceDashboard = () => {
 
                 {/* DID Scanner & Selective Disclosure */}
                 <div className="card bg-indigo-500/10 border-indigo-500/20">
-                  <h3 className="text-lg font-bold text-white mb-4">Scan Student DID</h3>
+                  <h3 className="text-lg font-bold text-white mb-4">Student DID</h3>
                   <p className="text-sm text-secondary mb-4">
                     Request the student's DID to access their credentials. They will choose what to share with you.
                   </p>
@@ -396,6 +394,31 @@ export const ServiceDashboard = () => {
                       {requestingAccess && <Loader2 size={18} className="animate-spin" />}
                       {requestingAccess ? 'Creating Request...' : 'Request Access'}
                     </button>
+
+                    {generatedShareLink && (
+                      <div className="bg-white/5 rounded p-3 border border-white/10 space-y-2">
+                        <p className="text-xs text-muted">Share Link</p>
+                        <input
+                          type="text"
+                          readOnly
+                          value={generatedShareLink}
+                          className="input-field w-full font-mono text-xs"
+                        />
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(generatedShareLink)
+                              toast.success('Link copied')
+                            } catch (err) {
+                              toast.error('Failed to copy link')
+                            }
+                          }}
+                          className="btn-secondary w-full"
+                        >
+                          Copy Link
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

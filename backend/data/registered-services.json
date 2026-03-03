@@ -1,1 +1,27 @@
-[]
+[
+  [
+    "service_63b4db3f-f2da-4b3b-899b-c47e9c07b76d",
+    {
+      "@context": "https://www.w3.org/ns/credentials/v2",
+      "id": "service_63b4db3f-f2da-4b3b-899b-c47e9c07b76d",
+      "type": "ServiceProvider",
+      "name": "siddi corp",
+      "serviceType": "employer",
+      "contactEmail": "n.stechnicalgamerx@gmail.com",
+      "verificationPublicKey": "key_gyyrf7",
+      "profile": {
+        "createdAt": "2026-03-02T23:50:05.590Z",
+        "verified": false,
+        "verificationCount": 0,
+        "averageTrustScore": 0
+      },
+      "metadata": {
+        "registered": true,
+        "active": true
+      },
+      "registeredAt": "2026-03-02T23:50:05.590Z",
+      "verificationCount": 0,
+      "trustedVerifications": 0
+    }
+  ]
+]

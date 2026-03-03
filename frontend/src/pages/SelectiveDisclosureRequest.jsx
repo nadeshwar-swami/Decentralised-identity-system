@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useWalletContext } from '../context/WalletContext'
-import { CheckCircle, AlertCircle, Loader2, Shield, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle, AlertCircle, Loader2, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 /**
@@ -21,6 +21,19 @@ export const SelectiveDisclosureRequest = () => {
   const [requestId, setRequestId] = useState(null)
   const [shared, setShared] = useState(false)
   const [showAllFields, setShowAllFields] = useState({})
+  const [studentProfile, setStudentProfile] = useState(null)
+  const [showProfileForm, setShowProfileForm] = useState(false)
+  const [profileFormData, setProfileFormData] = useState({
+    fullName: '',
+    email: '',
+    studentId: '',
+    dateOfBirth: '',
+    admissionNumber: '',
+    mobileNumber: '',
+    department: '',
+    yearOfStudy: '',
+  })
+  const [savingProfile, setSavingProfile] = useState(false)
 
   // Get request info from URL params
   useEffect(() => {
@@ -39,7 +52,25 @@ export const SelectiveDisclosureRequest = () => {
     if (!isConnected || !walletAddress) return
     
     fetchCredentialsAndDID()
+    fetchStudentProfile()
   }, [walletAddress, isConnected])
+
+  const fetchStudentProfile = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/credentials/student/${walletAddress}`
+      )
+      if (response.ok) {
+        const data = await response.json()
+        if (data.data?.profile) {
+          setStudentProfile(data.data.profile)
+          setProfileFormData(data.data.profile)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching student profile:', err)
+    }
+  }
 
   const fetchCredentialsAndDID = async () => {
     try {
@@ -112,6 +143,49 @@ export const SelectiveDisclosureRequest = () => {
       }
     } catch (err) {
       console.error('Error fetching service:', err)
+    }
+  }
+
+  const handleProfileFormChange = (e) => {
+    const { name, value } = e.target
+    setProfileFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    
+    try {
+      setSavingProfile(true)
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/credentials/student/profile`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress,
+            ...profileFormData,
+          }),
+        }
+      )
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setStudentProfile(data.data)
+        setShowProfileForm(false)
+        toast.success('Profile saved successfully! Future credentials will include your information.')
+      } else {
+        toast.error(data.error || 'Failed to save profile')
+      }
+    } catch (err) {
+      console.error('Error saving profile:', err)
+      toast.error('Failed to save profile')
+    } finally {
+      setSavingProfile(false)
     }
   }
 
@@ -245,6 +319,158 @@ export const SelectiveDisclosureRequest = () => {
               </div>
               <Shield className="text-indigo-400 flex-shrink-0" size={32} />
             </div>
+          </div>
+        )}
+
+        {/* Profile Status Banner */}
+        {(!studentProfile || !studentProfile.fullName) && (
+          <div className="card bg-amber-500/10 border-amber-500/20">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="text-amber-400 flex-shrink-0 mt-0.5" size={24} />
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-300 mb-2">Complete Your Profile</h3>
+                <p className="text-sm text-amber-300/80 mb-4">
+                  Your profile is incomplete. Fill in your information below so future credentials include all your details when you share them with services.
+                </p>
+                {!showProfileForm && (
+                  <button
+                    onClick={() => setShowProfileForm(true)}
+                    className="text-sm bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded border border-amber-500/30 transition"
+                  >
+                    Fill Profile Now
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Profile Form */}
+        {showProfileForm && (
+          <div className="card bg-white/5 border border-white/10">
+            <h3 className="text-lg font-bold text-white mb-4">Complete Your Profile</h3>
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Full Name</label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={profileFormData.fullName}
+                    onChange={handleProfileFormChange}
+                    placeholder="John Doe"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={profileFormData.email}
+                    onChange={handleProfileFormChange}
+                    placeholder="john@university.edu"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Student ID</label>
+                  <input
+                    type="text"
+                    name="studentId"
+                    value={profileFormData.studentId}
+                    onChange={handleProfileFormChange}
+                    placeholder="STU000123"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={profileFormData.dateOfBirth}
+                    onChange={handleProfileFormChange}
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Admission Number</label>
+                  <input
+                    type="text"
+                    name="admissionNumber"
+                    value={profileFormData.admissionNumber}
+                    onChange={handleProfileFormChange}
+                    placeholder="ADM123456"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Mobile Number</label>
+                  <input
+                    type="tel"
+                    name="mobileNumber"
+                    value={profileFormData.mobileNumber}
+                    onChange={handleProfileFormChange}
+                    placeholder="+1234567890"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Department</label>
+                  <input
+                    type="text"
+                    name="department"
+                    value={profileFormData.department}
+                    onChange={handleProfileFormChange}
+                    placeholder="Computer Science"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted uppercase mb-2 font-semibold">Year of Study</label>
+                  <select
+                    name="yearOfStudy"
+                    value={profileFormData.yearOfStudy}
+                    onChange={handleProfileFormChange}
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500/50"
+                    required
+                  >
+                    <option value="">Select year</option>
+                    <option value="1">Year 1</option>
+                    <option value="2">Year 2</option>
+                    <option value="3">Year 3</option>
+                    <option value="4">Year 4</option>
+                    <option value="5+">Year 5+</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileForm(false)}
+                  className="flex-1 btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                >
+                  {savingProfile && <Loader2 size={16} className="animate-spin" />}
+                  {savingProfile ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </form>
           </div>
         )}
 
