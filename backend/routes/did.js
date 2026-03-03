@@ -209,8 +209,8 @@ router.post('/register', async (req, res) => {
     }
 
     // Step 5: Store DID registration in memory for resolution
-    const network = process.env.ALGORAND_NETWORK || 'testnet'
-    const did = `did:algo:${network}:${walletAddress}`
+    const appId = process.env.ALGORAND_APP_ID || '756415000'
+    const did = `did:algo:app:${appId}:${walletAddress}`
     registeredDIDs.set(walletAddress, {
       did,
       ipfsHash: ipfsHash || null,
@@ -255,8 +255,8 @@ router.post('/register', async (req, res) => {
 router.get('/:walletAddress', async (req, res) => {
   try {
     const { walletAddress } = req.params
-    const network = process.env.ALGORAND_NETWORK || 'testnet'
-    const did = `did:algo:${network}:${walletAddress}`
+    const appId = process.env.ALGORAND_APP_ID || '756415000'
+    const did = `did:algo:app:${appId}:${walletAddress}`
 
     // Validate wallet address format
     if (walletAddress.length !== 58) {

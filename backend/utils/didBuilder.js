@@ -13,8 +13,8 @@ import { generateUUID } from '../utils/crypto.js'
  * @returns {Object} W3C compliant DID document
  */
 export const buildDIDDocument = (walletAddress, displayName) => {
-  const network = process.env.ALGORAND_NETWORK || 'testnet'
-  const did = `did:algo:${network}:${walletAddress}`
+  const appId = process.env.ALGORAND_APP_ID || '756415000'
+  const did = `did:algo:app:${appId}:${walletAddress}`
   const now = new Date().toISOString()
 
   return {

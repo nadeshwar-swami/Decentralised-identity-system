@@ -1,1 +1,27 @@
-[]
+[
+  [
+    "service_d10a3bb9-cab4-4d59-b8e8-262821dc729d",
+    {
+      "@context": "https://www.w3.org/ns/credentials/v2",
+      "id": "service_d10a3bb9-cab4-4d59-b8e8-262821dc729d",
+      "type": "ServiceProvider",
+      "name": "vadv",
+      "serviceType": "employer",
+      "contactEmail": "zvxs@afc.azdvsz",
+      "verificationPublicKey": "key_5m0jbr",
+      "profile": {
+        "createdAt": "2026-03-03T01:23:01.478Z",
+        "verified": false,
+        "verificationCount": 0,
+        "averageTrustScore": 0
+      },
+      "metadata": {
+        "registered": true,
+        "active": true
+      },
+      "registeredAt": "2026-03-03T01:23:01.478Z",
+      "verificationCount": 0,
+      "trustedVerifications": 0
+    }
+  ]
+]
