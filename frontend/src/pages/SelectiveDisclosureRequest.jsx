@@ -23,7 +23,6 @@ export const SelectiveDisclosureRequest = () => {
   const [showAllFields, setShowAllFields] = useState({})
   const [studentProfile, setStudentProfile] = useState(null)
   const [showProfileForm, setShowProfileForm] = useState(false)
-  const [profileBannerDismissed, setProfileBannerDismissed] = useState(false)
   const [profileFormData, setProfileFormData] = useState({
     fullName: '',
     email: '',
@@ -178,7 +177,6 @@ export const SelectiveDisclosureRequest = () => {
       if (data.success) {
         setStudentProfile(data.data)
         setShowProfileForm(false)
-        setProfileBannerDismissed(true)
         toast.success('Profile saved successfully! Future credentials will include your information.')
       } else {
         toast.error(data.error || 'Failed to save profile')
@@ -325,7 +323,7 @@ export const SelectiveDisclosureRequest = () => {
         )}
 
         {/* Profile Status Banner */}
-        {!profileBannerDismissed && (!studentProfile || Object.keys(studentProfile).length === 0 || !studentProfile.fullName) && (
+        {(!studentProfile || !studentProfile.fullName) && (
           <div className="card bg-amber-500/10 border-amber-500/20">
             <div className="flex items-start gap-4">
               <AlertTriangle className="text-amber-400 flex-shrink-0 mt-0.5" size={24} />
@@ -334,22 +332,14 @@ export const SelectiveDisclosureRequest = () => {
                 <p className="text-sm text-amber-300/80 mb-4">
                   Your profile is incomplete. Fill in your information below so future credentials include all your details when you share them with services.
                 </p>
-                <div className="flex gap-2">
-                  {!showProfileForm && (
-                    <button
-                      onClick={() => setShowProfileForm(true)}
-                      className="text-sm bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded border border-amber-500/30 transition"
-                    >
-                      Fill Profile Now
-                    </button>
-                  )}
+                {!showProfileForm && (
                   <button
-                    onClick={() => setProfileBannerDismissed(true)}
-                    className="text-sm bg-white/5 hover:bg-white/10 text-secondary px-3 py-1.5 rounded border border-white/10 transition"
+                    onClick={() => setShowProfileForm(true)}
+                    className="text-sm bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded border border-amber-500/30 transition"
                   >
-                    Dismiss
+                    Fill Profile Now
                   </button>
-                </div>
+                )}
               </div>
             </div>
           </div>
